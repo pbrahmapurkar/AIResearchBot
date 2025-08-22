@@ -1,0 +1,233 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// === AUTHENTICATION MODELS ===
+
+model User {
+  id            String       @id @default(cuid())
+  email         String       @unique
+  name          String?
+  image         String?
+  createdAt     DateTime     @default(now())
+  lastSeenAt    DateTime?
+  role          Role         @default(VIEWER)
+  orgId         String?
+  
+  accounts      Account[]
+  sessions      Session[]
+  projects      Project[]
+  reports       Report[]
+  usages        Usage[]
+  organization  Organization? @relation(fields: [orgId], references: [id], onDelete: SetNull)
+  
+  @@map("users")
+}
+
+model Organization {
+  id               String            @id @default(cuid())
+  name             String
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  
+  users            User[]
+  projects         Project[]
+  planSubscription PlanSubscription?
+  usages           Usage[]
+  
+  @@map("organizations")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model Lead {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  utm       Json?
+  createdAt DateTime @default(now())
+  
+  @@map("leads")
+}
+
+enum Role {
+  ADMIN
+  ANALYST
+  VIEWER
+}
+
+enum Industry {
+  FMCG
+  FINTECH
+  ECOMMERCE
+  HEALTHCARE
+  EDUCATION
+  AUTOMOTIVE
+  RETAIL
+  TRAVEL
+  REAL_ESTATE
+  OTHER
+}
+
+enum Language {
+  HINDI
+  TAMIL
+  TELUGU
+  MARATHI
+  BENGALI
+  GUJARATI
+  KANNADA
+  MALAYALAM
+  PUNJABI
+  ODIA
+}
+
+enum PlanType {
+  FREE
+  STARTER
+  PRO
+}
+
+// === MISTER PB CORE MODELS ===
+
+model Project {
+  id           String     @id @default(cuid())
+  name         String
+  industry     Industry
+  languages    Language[]
+  regions      String[]   // Array of state names
+  alertsEnabled Boolean   @default(false)
+  alertThresholds Json?   // Sentiment, price sensitivity thresholds
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  userId       String
+  orgId        String
+  
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  reports      Report[]
+  
+  @@map("projects")
+}
+
+model Report {
+  id            String       @id @default(cuid())
+  title         String
+  summaryMd     String       // Markdown summary with citations
+  jsonData      Json         // Structured insights data
+  period        String       // e.g., "2024-01", "Q1-2024"
+  status        ReportStatus @default(GENERATING)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  projectId     String
+  userId        String
+  
+  project       Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sources       SourceCitation[]
+  
+  @@map("reports")
+}
+
+model SourceCitation {
+  id        String   @id @default(cuid())
+  reportId  String
+  title     String
+  url       String
+  snippet   String
+  language  Language
+  region    String
+  sentiment Float?   // -1 to 1
+  createdAt DateTime @default(now())
+  
+  report    Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  
+  @@map("source_citations")
+}
+
+model PlanSubscription {
+  id            String   @id @default(cuid())
+  orgId         String   @unique
+  plan          PlanType @default(FREE)
+  monthlyQuota  Int      // Number of reports per month
+  usedThisMonth Int      @default(0)
+  resetDate     DateTime // When the monthly quota resets
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  organization  Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  
+  @@map("plan_subscriptions")
+}
+
+model Usage {
+  id        String    @id @default(cuid())
+  userId    String
+  orgId     String
+  kind      UsageKind
+  costUnits Int       // Cost in arbitrary units
+  metadata  Json?     // Additional usage details
+  createdAt DateTime  @default(now())
+  
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  
+  @@map("usages")
+}
+
+enum ReportStatus {
+  GENERATING
+  COMPLETED
+  FAILED
+}
+
+enum UsageKind {
+  REPORT_GENERATION
+  API_CALL
+  EXPORT
+}

@@ -1,0 +1,42 @@
+[
+  {
+    "id": "diwali_2024",
+    "name": "Diwali",
+    "date": "2024-11-01",
+    "regions": ["maharashtra_tier2", "uttar_pradesh_tier2", "rajasthan_tier3", "gujarat_tier2"],
+    "impact": "high",
+    "categories": ["electronics", "clothing", "jewelry", "sweets"]
+  },
+  {
+    "id": "pongal_2025", 
+    "name": "Pongal",
+    "date": "2025-01-14",
+    "regions": ["tamilnadu_tier2"],
+    "impact": "high",
+    "categories": ["clothing", "gold", "electronics", "home_appliances"]
+  },
+  {
+    "id": "ugadi_2025",
+    "name": "Ugadi",
+    "date": "2025-03-30",
+    "regions": ["andhra_pradesh_tier2", "karnataka_tier3"],
+    "impact": "medium", 
+    "categories": ["clothing", "electronics", "groceries"]
+  },
+  {
+    "id": "gudi_padwa_2025",
+    "name": "Gudi Padwa",
+    "date": "2025-03-30",
+    "regions": ["maharashtra_tier2"],
+    "impact": "medium",
+    "categories": ["clothing", "gold", "home_decor"]
+  },
+  {
+    "id": "holi_2025",
+    "name": "Holi", 
+    "date": "2025-03-14",
+    "regions": ["uttar_pradesh_tier2", "rajasthan_tier3", "gujarat_tier2"],
+    "impact": "medium",
+    "categories": ["colors", "sweets", "clothing"]
+  }
+]

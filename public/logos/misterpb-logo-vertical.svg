@@ -1,0 +1,59 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Logo Icon -->
+  <defs>
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0ea5e9" />
+      <stop offset="100%" stop-color="#14b8a6" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Main container circle -->
+  <circle cx="60" cy="32" r="30" fill="url(#logoGradient)" />
+
+  <!-- AI Network nodes - subtle background pattern -->
+  <g opacity="0.3" stroke="#ffffff" stroke-width="1" fill="none">
+    <!-- Network connections -->
+    <line x1="40" y1="20" x2="52" y2="28" />
+    <line x1="52" y1="28" x2="68" y2="24" />
+    <line x1="68" y1="24" x2="80" y2="32" />
+    <line x1="52" y1="28" x2="60" y2="44" />
+    <line x1="68" y1="24" x2="72" y2="48" />
+    <line x1="44" y1="48" x2="60" y2="44" />
+    
+    <!-- Network nodes -->
+    <circle cx="40" cy="20" r="2" fill="#ffffff" />
+    <circle cx="52" cy="28" r="2" fill="#ffffff" />
+    <circle cx="68" cy="24" r="2" fill="#ffffff" />
+    <circle cx="80" cy="32" r="2" fill="#ffffff" />
+    <circle cx="60" cy="44" r="2" fill="#ffffff" />
+    <circle cx="72" cy="48" r="2" fill="#ffffff" />
+    <circle cx="44" cy="48" r="2" fill="#ffffff" />
+  </g>
+
+  <!-- Central PB initials -->
+  <g filter="url(#glow)">
+    <!-- P letter -->
+    <path d="M50 18 L50 46 M50 18 L58 18 Q62 18 62 24 Q62 30 58 30 L50 30" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+    
+    <!-- B letter -->
+    <path d="M66 18 L66 46 M66 18 L72 18 Q76 18 76 22 Q76 26 73 28 Q76 30 76 36 Q76 40 72 40 L66 40 M66 28 L72 28" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+  </g>
+
+  <!-- Subtle sparkle effects -->
+  <g opacity="0.8" fill="#ffffff">
+    <circle cx="46" cy="16" r="1" />
+    <circle cx="76" cy="20" r="1" />
+    <circle cx="48" cy="50" r="1" />
+    <circle cx="74" cy="52" r="1" />
+  </g>
+
+  <!-- Text: MisterPB.in -->
+  <text x="60" y="85" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="700" fill="#475569" letter-spacing="-0.025em" text-anchor="middle">MisterPB.in</text>
+</svg>

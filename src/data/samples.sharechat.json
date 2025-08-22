@@ -1,0 +1,102 @@
+[
+  {
+    "id": "sc_001",
+    "text": "नया फोन लेना है लेकिन बहुत महंगा है। कोई discount मिलेगा क्या? 📱",
+    "lang": "hi",
+    "regionId": "uttar_pradesh_tier2",
+    "source": "sharechat",
+    "url": "https://sharechat.com/post/sc_001",
+    "timestamp": 1703980800000,
+    "author": "user_12345"
+  },
+  {
+    "id": "sc_002", 
+    "text": "இந்த தீபாவளி sale-ல நல்ல offer இருக்கா? Electronics வாங்கனும் 🪔",
+    "lang": "ta",
+    "regionId": "tamilnadu_tier2",
+    "source": "sharechat",
+    "url": "https://sharechat.com/post/sc_002",
+    "timestamp": 1703894400000,
+    "author": "tamil_user_01"
+  },
+  {
+    "id": "sc_003",
+    "text": "मी नवीन smartphone घेण्याचा विचार करत आहे. Price चांगला आहे का? 🤔",
+    "lang": "mr",
+    "regionId": "maharashtra_tier2", 
+    "source": "sharechat",
+    "url": "https://sharechat.com/post/sc_003",
+    "timestamp": 1703808000000,
+    "author": "marathi_buyer"
+  },
+  {
+    "id": "sc_004",
+    "text": "ఈ సెల్ లో బాగా తక్కువ ధర లేదు. వేరే దుకాణంలో చూస్తాను 💸",
+    "lang": "te", 
+    "regionId": "andhra_pradesh_tier2",
+    "source": "sharechat",
+    "url": "https://sharechat.com/post/sc_004",
+    "timestamp": 1703721600000,
+    "author": "telugu_shopper"
+  },
+  {
+    "id": "sc_005",
+    "text": "Flipkart pe achha deal hai bhai! iPhone ka price kam kar diya hai 🔥",
+    "lang": "hi",
+    "regionId": "karnataka_tier3",
+    "source": "sharechat", 
+    "url": "https://sharechat.com/post/sc_005",
+    "timestamp": 1703635200000,
+    "author": "deal_hunter"
+  },
+  {
+    "id": "sc_006",
+    "text": "பண்டிகை காலத்துல prices எல்லாமே அதிகம். Wait பண்ணலாம் போல 😅",
+    "lang": "ta",
+    "regionId": "tamilnadu_tier2",
+    "source": "sharechat",
+    "url": "https://sharechat.com/post/sc_006", 
+    "timestamp": 1703548800000,
+    "author": "smart_buyer_tn"
+  },
+  {
+    "id": "sc_007",
+    "text": "Amazon वर discount मिळतो का? Local shop मध्ये खूप महाग आहे 💰",
+    "lang": "mr",
+    "regionId": "maharashtra_tier2",
+    "source": "sharechat",
+    "url": "https://sharechat.com/post/sc_007",
+    "timestamp": 1703462400000,
+    "author": "pune_shopper"
+  },
+  {
+    "id": "sc_008",
+    "text": "మంచి quality clothes కావాలి కానీ budget తక్కువ. ఏ brand బెస్ట్? 👕",
+    "lang": "te",
+    "regionId": "andhra_pradesh_tier2", 
+    "source": "sharechat",
+    "url": "https://sharechat.com/post/sc_008",
+    "timestamp": 1703376000000,
+    "author": "fashion_lover_ap"
+  },
+  {
+    "id": "sc_009",
+    "text": "सबसे sasta laptop कहाँ मिलेगा? Student हूँ budget कम है 💻",
+    "lang": "hi",
+    "regionId": "rajasthan_tier3",
+    "source": "sharechat",
+    "url": "https://sharechat.com/post/sc_009",
+    "timestamp": 1703289600000,
+    "author": "student_raj"
+  },
+  {
+    "id": "sc_010",
+    "text": "இந்த brand-ன் quality நல்லாதானே? Price-க்கு நல்ல value கிடைக்குமா? ⭐",
+    "lang": "ta",
+    "regionId": "tamilnadu_tier2",
+    "source": "sharechat",
+    "url": "https://sharechat.com/post/sc_010",
+    "timestamp": 1703203200000,
+    "author": "value_seeker"
+  }
+]

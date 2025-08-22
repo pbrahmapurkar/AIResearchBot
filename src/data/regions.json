@@ -1,0 +1,82 @@
+[
+  {
+    "id": "maharashtra_tier2",
+    "name": "Maharashtra Tier-2",
+    "state": "Maharashtra",
+    "cities": ["Nashik", "Aurangabad", "Solapur", "Kolhapur"],
+    "centroid": [75.7139, 19.7515],
+    "tier": "2",
+    "population": 12500000,
+    "primaryLanguages": ["mr", "hi"]
+  },
+  {
+    "id": "tamilnadu_tier2",
+    "name": "Tamil Nadu Tier-2", 
+    "state": "Tamil Nadu",
+    "cities": ["Coimbatore", "Madurai", "Tiruchirappalli", "Salem"],
+    "centroid": [78.6569, 11.1271],
+    "tier": "2",
+    "population": 8200000,
+    "primaryLanguages": ["ta", "hi"]
+  },
+  {
+    "id": "andhra_pradesh_tier2",
+    "name": "Andhra Pradesh Tier-2",
+    "state": "Andhra Pradesh", 
+    "cities": ["Visakhapatnam", "Vijayawada", "Guntur", "Tirupati"],
+    "centroid": [79.7400, 15.9129],
+    "tier": "2",
+    "population": 6800000,
+    "primaryLanguages": ["te", "hi"]
+  },
+  {
+    "id": "karnataka_tier3",
+    "name": "Karnataka Tier-3",
+    "state": "Karnataka",
+    "cities": ["Mysore", "Hubli", "Mangalore", "Belgaum"],
+    "centroid": [76.6394, 15.3173],
+    "tier": "3", 
+    "population": 4200000,
+    "primaryLanguages": ["hi", "te"]
+  },
+  {
+    "id": "uttar_pradesh_tier2",
+    "name": "UP Tier-2",
+    "state": "Uttar Pradesh",
+    "cities": ["Kanpur", "Lucknow", "Agra", "Varanasi"],
+    "centroid": [80.9462, 26.8467],
+    "tier": "2",
+    "population": 15600000,
+    "primaryLanguages": ["hi"]
+  },
+  {
+    "id": "rajasthan_tier3",
+    "name": "Rajasthan Tier-3", 
+    "state": "Rajasthan",
+    "cities": ["Jodhpur", "Kota", "Bikaner", "Udaipur"],
+    "centroid": [74.2179, 27.0238],
+    "tier": "3",
+    "population": 3400000,
+    "primaryLanguages": ["hi"]
+  },
+  {
+    "id": "gujarat_tier2",
+    "name": "Gujarat Tier-2",
+    "state": "Gujarat", 
+    "cities": ["Surat", "Vadodara", "Rajkot", "Bhavnagar"],
+    "centroid": [72.5714, 23.0225],
+    "tier": "2",
+    "population": 7800000,
+    "primaryLanguages": ["hi"]
+  },
+  {
+    "id": "west_bengal_tier3",
+    "name": "West Bengal Tier-3",
+    "state": "West Bengal",
+    "cities": ["Siliguri", "Durgapur", "Asansol", "Howrah"],
+    "centroid": [87.8550, 22.9868],
+    "tier": "3",
+    "population": 5100000,
+    "primaryLanguages": ["hi"]
+  }
+]

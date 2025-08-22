@@ -1,0 +1,101 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
+import { planMissionJSON } from '@/lib/llm/index'
+
+// Request validation schema
+const RequestSchema = z.object({
+  mission: z.string().min(1, 'Mission is required').max(1000, 'Mission too long')
+})
+
+// Response validation schema - updated to match new format
+const PlanStepSchema = z.object({
+  index: z.number(),
+  title: z.string(),
+  objective: z.string(),
+  queries: z.array(z.string()),
+  deliverable: z.string(),
+  estimatedTime: z.string(),
+  tools: z.array(z.string()),
+  status: z.enum(["pending", "in-progress", "completed", "error"]).optional(),
+  sources: z.array(z.object({
+    title: z.string(),
+    url: z.string(),
+    snippet: z.string().optional()
+  })).optional()
+})
+
+const MissionPlanSchema = z.object({
+  planTitle: z.string(),
+  totalSteps: z.number(),
+  estimatedTime: z.string(),
+  steps: z.array(PlanStepSchema)
+})
+
+export async function POST(request: NextRequest) {
+  try {
+    // Parse and validate request body
+    const body = await request.json()
+    const { mission } = RequestSchema.parse(body)
+
+    // Check if at least one LLM provider is available
+    const hasProvider = process.env.OPENAI_API_KEY || 
+                       process.env.GEMINI_API_KEY || 
+                       process.env.COHERE_API_KEY || 
+                       process.env.HF_API_KEY
+    
+    if (!hasProvider) {
+      return NextResponse.json(
+        { 
+          error: 'No LLM provider configured. Please add at least one API key (OPENAI_API_KEY, GEMINI_API_KEY, COHERE_API_KEY, or HF_API_KEY) to your .env.local file.' 
+        },
+        { status: 500 }
+      )
+    }
+
+    // Get plan from the selected LLM provider
+    const plan = await planMissionJSON(mission)
+
+    // Validate the response shape
+    const validatedPlan = MissionPlanSchema.parse(plan)
+
+    return NextResponse.json(validatedPlan)
+
+  } catch (error) {
+    console.error('Planning error:', error)
+
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { 
+          error: 'Invalid request format',
+          details: error.errors 
+        },
+        { status: 400 }
+      )
+    }
+
+    if (error instanceof Error) {
+      if (error.message.includes('API_KEY')) {
+        return NextResponse.json(
+          { 
+            error: 'LLM provider not configured. Please check your API keys in .env.local file.' 
+          },
+          { status: 500 }
+        )
+      }
+
+      return NextResponse.json(
+        { 
+          error: error.message || 'Failed to generate plan'
+        },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json(
+      { 
+        error: 'An unexpected error occurred'
+      },
+      { status: 500 }
+    )
+  }
+}
