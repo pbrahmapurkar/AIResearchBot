@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
-import { Timeframe, LanguageCode, RegionCode } from '@/types/reports';
+import { Timeframe, TimeframeType, TimeframeFlexible, LanguageCode, RegionCode } from '@/types/reports';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -21,7 +21,7 @@ interface GenerateReportDialogProps {
   defaultLanguages: LanguageCode[];
   defaultRegions: RegionCode[];
   onGenerate: (data: {
-    timeframe: Timeframe;
+    timeframe: TimeframeFlexible;
     langs: LanguageCode[];
     regions: RegionCode[];
     advancedOptions: AdvancedOptions;
@@ -39,6 +39,7 @@ interface AdvancedOptions {
 }
 
 const LANGUAGE_OPTIONS: { id: LanguageCode; label: string }[] = [
+  { id: 'en', label: 'English' },
   { id: 'hi', label: 'Hindi' },
   { id: 'ta', label: 'Tamil' },
   { id: 'te', label: 'Telugu' },
@@ -89,7 +90,7 @@ export function GenerateReportDialog({
   defaultRegions,
   onGenerate
 }: GenerateReportDialogProps) {
-  const [timeframe, setTimeframe] = useState<Timeframe>({ type: 'last_7d' });
+  const [timeframe, setTimeframe] = useState<TimeframeFlexible>({ type: 'last_7d' });
   const [selectedLangs, setSelectedLangs] = useState<LanguageCode[]>(defaultLanguages);
   const [selectedRegions, setSelectedRegions] = useState<RegionCode[]>(defaultRegions);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -218,7 +219,7 @@ export function GenerateReportDialog({
                 <Label>Timeframe</Label>
                 <Select 
                   value={timeframe.type} 
-                  onValueChange={(value) => setTimeframe({ type: value as any })}
+                  onValueChange={(value) => setTimeframe({ type: value as TimeframeType })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select timeframe" />
@@ -295,7 +296,7 @@ export function GenerateReportDialog({
                 <Label>Analysis Depth</Label>
                 <Select 
                   value={advancedOptions.analysisDepth} 
-                  onValueChange={(value) => setAdvancedOptions(prev => ({ ...prev, analysisDepth: value as any }))}
+                  onValueChange={(value) => setAdvancedOptions(prev => ({ ...prev, analysisDepth: value as AdvancedOptions['analysisDepth'] }))}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -394,7 +395,7 @@ export function GenerateReportDialog({
                 <Label>Processing Priority</Label>
                 <Select 
                   value={advancedOptions.priority} 
-                  onValueChange={(value) => setAdvancedOptions(prev => ({ ...prev, priority: value as any }))}
+                  onValueChange={(value) => setAdvancedOptions(prev => ({ ...prev, priority: value as AdvancedOptions['priority'] }))}
                 >
                   <SelectTrigger>
                     <SelectValue />

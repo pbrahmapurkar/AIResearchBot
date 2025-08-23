@@ -2,13 +2,12 @@
 
 import { useActionState, useEffect, useRef } from 'react'
 import { performSearchAction } from '../../search/actions'
-import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Search, AlertCircle } from 'lucide-react'
 
 export function SearchForm({ initialQuery }: { initialQuery?: string }) {
-           const [state, formAction, pending] = useActionState(performSearchAction, null)
+  const [state, formAction, pending] = useActionState(performSearchAction, null as { ok: boolean; q: string; results: { title: string; url: string; snippet: string }[]; error?: string } | null)
   const inputRef = useRef<HTMLInputElement>(null)
            // const sp = useSearchParams() // Unused for now
 

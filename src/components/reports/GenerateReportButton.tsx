@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { GenerateReportDialog } from './GenerateReportDialog';
 import { useReportJob } from '@/hooks/useReportJob';
 import { ReportJobCard } from './ReportJobCard';
-import { Timeframe, LanguageCode, RegionCode } from '@/types/reports';
+import { Timeframe, TimeframeFlexible, LanguageCode, RegionCode } from '@/types/reports';
 import { toast } from 'sonner';
 
 interface GenerateReportButtonProps {
@@ -24,9 +24,10 @@ export function GenerateReportButton({
 
 
   const handleGenerate = async (data: {
-    timeframe: Timeframe;
+    timeframe: TimeframeFlexible;
     langs: LanguageCode[];
     regions: RegionCode[];
+    advancedOptions: { exportFormats: string[] };
   }) => {
     try {
       const response = await fetch('/api/research/run', {

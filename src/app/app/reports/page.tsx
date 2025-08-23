@@ -22,7 +22,7 @@ import {
 import { GenerateReportDialog } from '@/components/reports/GenerateReportDialog';
 import { ReportAnalytics } from '@/components/reports/ReportAnalytics';
 import { ReportComparison } from '@/components/reports/ReportComparison';
-import { Timeframe, LanguageCode, RegionCode } from '@/types/reports';
+import { Timeframe, TimeframeFlexible, LanguageCode, RegionCode } from '@/types/reports';
 
 interface ReportSummary {
   id: string;
@@ -30,7 +30,7 @@ interface ReportSummary {
   status: 'completed' | 'processing' | 'failed' | 'queued';
   createdAt: string;
   completedAt?: string;
-  timeframe: Timeframe;
+  timeframe: TimeframeFlexible;
   languages: LanguageCode[];
   regions: RegionCode[];
   totalMentions: number;
@@ -175,10 +175,10 @@ export default function ReportsDashboard() {
   }, [reports, searchTerm, statusFilter, timeframeFilter]);
 
   const handleGenerateReport = async (data: {
-    timeframe: Timeframe;
+    timeframe: TimeframeFlexible;
     langs: LanguageCode[];
     regions: RegionCode[];
-    advancedOptions: any;
+    advancedOptions: { exportFormats: string[] };
   }) => {
     try {
       // Mock report generation - replace with actual API call
@@ -225,7 +225,7 @@ export default function ReportsDashboard() {
     }
   };
 
-  const getTimeframeLabel = (timeframe: Timeframe) => {
+  const getTimeframeLabel = (timeframe: TimeframeFlexible) => {
     switch (timeframe.type) {
       case 'last_7d': return 'Last 7 days';
       case 'last_30d': return 'Last 30 days';
@@ -238,7 +238,7 @@ export default function ReportsDashboard() {
 
   const getLanguageLabels = (languages: LanguageCode[]) => {
     const languageMap: Record<LanguageCode, string> = {
-      hi: 'Hindi', ta: 'Tamil', te: 'Telugu', mr: 'Marathi',
+      en: 'English', hi: 'Hindi', ta: 'Tamil', te: 'Telugu', mr: 'Marathi',
       bn: 'Bengali', gu: 'Gujarati', kn: 'Kannada', ml: 'Malayalam', pa: 'Punjabi'
     };
     return languages.map(lang => languageMap[lang]).join(', ');

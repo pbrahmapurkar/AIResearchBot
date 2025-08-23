@@ -2,7 +2,8 @@
 
 import 'server-only'
 import { headers } from 'next/headers'
-import { revalidatePath, redirect } from 'next/navigation'
+import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
 import { webSearchWithFallback, type SearchResult } from '@/lib/search'
 
 export async function performSearchAction(_prevState: unknown, formData: FormData): Promise<{ ok: boolean; q: string; results: SearchResult[]; error?: string }> {
@@ -15,7 +16,8 @@ export async function performSearchAction(_prevState: unknown, formData: FormDat
     // We redirect to enable RSC/Suspense streaming on the page load
     redirect(`/app/search?q=${encodeURIComponent(q)}`)
   } catch (e: unknown) {
-    return { ok: false, q, results: [] as SearchResult[], error: e?.message || 'Search failed' }
+    const errorMessage = e instanceof Error ? e.message : 'Search failed';
+    return { ok: false, q, results: [] as SearchResult[], error: errorMessage }
   } finally {
     revalidatePath('/app/search')
   }

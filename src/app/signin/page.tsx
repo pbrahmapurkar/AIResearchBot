@@ -14,7 +14,7 @@ export default function SignInPage() {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const search = useSearchParams()
-  const next = search.get('redirect') || '/app'
+  const next = search?.get('redirect') || '/app'
   const callback = `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=${encodeURIComponent(next)}`
 
   async function signInWithEmail(e: React.FormEvent) {

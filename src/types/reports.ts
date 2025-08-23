@@ -1,10 +1,21 @@
+export type TimeframeType = 'last_7d' | 'last_30d' | 'last_90d' | 'last_6m' | 'last_1y' | 'custom';
+
 export type Timeframe = 
   | { type: 'last_7d' }
   | { type: 'last_30d' }
   | { type: 'last_90d' }
+  | { type: 'last_6m' }
+  | { type: 'last_1y' }
   | { type: 'custom'; from: string; to: string };
 
-export type LanguageCode = 'hi' | 'ta' | 'te' | 'mr' | 'bn' | 'gu' | 'kn' | 'ml' | 'pa';
+// Alternative: More flexible Timeframe type that uses TimeframeType
+export type TimeframeFlexible = {
+  type: TimeframeType;
+  from?: string;
+  to?: string;
+};
+
+export type LanguageCode = 'hi' | 'ta' | 'te' | 'mr' | 'bn' | 'gu' | 'kn' | 'ml' | 'pa' | 'en';
 export type RegionCode = 'MH' | 'TN' | 'KA' | 'AP' | 'TL' | 'UP' | 'BH' | 'GJ' | 'RJ' | 'WB';
 
 export interface GenerateReportRequest {

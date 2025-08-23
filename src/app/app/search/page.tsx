@@ -4,8 +4,9 @@ import { Results } from './results'
 
 export const dynamic = 'force-dynamic'
 
-export default async function SearchPage({ searchParams }: { searchParams: { q?: string } }) {
-  const q = (searchParams?.q || '').toString().trim()
+export default async function SearchPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+  const resolvedParams = await searchParams
+  const q = (resolvedParams?.q || '').toString().trim()
   
   return (
     <div className="mx-auto max-w-4xl p-6">

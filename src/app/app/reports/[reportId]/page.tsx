@@ -23,7 +23,7 @@ import { REPORT_COPY } from "@/copy/report";
 interface ReportPageState {
   report: Report | null;
   loading: boolean;
-  // error: string | null; // Unused for now
+  error: string | null;
 }
 
 export default function ReportPage() {
@@ -33,7 +33,7 @@ export default function ReportPage() {
   const [state, setState] = useState<ReportPageState>({
     report: null,
     loading: true,
-    // error: null // Unused for now
+    error: null
   });
 
   const sections = [
@@ -47,7 +47,7 @@ export default function ReportPage() {
 
   const fetchReport = async () => {
     try {
-      setState(prev => ({ ...prev, loading: true, /* error: null */ }));
+      setState(prev => ({ ...prev, loading: true, error: null }));
       
       const response = await fetch(`/api/research/report?id=${reportId}`);
       
@@ -56,12 +56,12 @@ export default function ReportPage() {
       }
       
       const report = await response.json();
-      setState({ report, loading: false, /* error: null */ });
+      setState({ report, loading: false, error: null });
     } catch (error) {
       setState({
         report: null,
         loading: false,
-        // error: error instanceof Error ? error.message : 'An error occurred' // Unused for now
+        error: error instanceof Error ? error.message : 'An error occurred'
       });
     }
   };
