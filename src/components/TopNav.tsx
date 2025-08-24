@@ -69,6 +69,10 @@ export default function TopNav() {
               Search
             </Link>
             
+            <Link href="/market-research" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
+              Market Research
+            </Link>
+            
             <Link href="/onboarding-page" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
               Onboarding
             </Link>
@@ -168,6 +172,7 @@ export default function TopNav() {
               <div className="space-y-2">
                 <Link href="/" className="block text-sm text-gray-600 hover:text-blue-600">Home</Link>
                 <Link href="/search-page" className="block text-sm text-gray-600 hover:text-blue-600">Search</Link>
+                <Link href="/market-research" className="block text-sm text-gray-600 hover:text-blue-600">Market Research</Link>
                 <Link href="/onboarding-page" className="block text-sm text-gray-600 hover:text-blue-600">Onboarding</Link>
                 <Link href="/reports-page" className="block text-sm text-gray-600 hover:text-blue-600">Reports</Link>
                 <Link href="/about" className="block text-sm text-gray-600 hover:text-blue-600">About</Link>

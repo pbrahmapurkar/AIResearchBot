@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { FileText, Calendar, User, TrendingUp, Eye, Download, Search, Globe, Target, BarChart3, Plus } from 'lucide-react'
+import { FileText, Calendar, User, TrendingUp, Eye, Download, Search, Globe, Target, BarChart3, Plus, Brain } from 'lucide-react'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -146,6 +146,23 @@ export default function HomePage() {
             <CardContent>
               <Button asChild className="w-full">
                 <Link href="/search-page">Start Searching</Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Brain className="h-5 w-5 text-indigo-600" />
+                Market Research
+              </CardTitle>
+              <CardDescription>
+                AI-powered market research with web search and intelligent analysis
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild className="w-full">
+                <Link href="/market-research">Start Research</Link>
               </Button>
             </CardContent>
           </Card>
