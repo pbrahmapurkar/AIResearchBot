@@ -51,7 +51,7 @@ export async function generateConsumerInsightsReport(project: Project, reportId:
       where: { id: reportId },
       data: {
         summaryMd: markdownSummary,
-        jsonData: reportData,
+        jsonData: JSON.stringify(reportData),
         status: 'COMPLETED'
       }
     })
@@ -68,7 +68,7 @@ export async function generateConsumerInsightsReport(project: Project, reportId:
       data: { 
         status: 'FAILED',
         summaryMd: 'Report generation failed. Please try again.',
-        jsonData: { error: error instanceof Error ? error.message : String(error) }
+        jsonData: JSON.stringify({ error: error instanceof Error ? error.message : String(error) })
       }
     })
     
@@ -375,13 +375,13 @@ async function saveSourceCitations(reportId: string, searchResults: SearchResult
     reportId,
     title: result.title,
     url: result.url,
+    content: result.content,
     snippet: result.snippet,
     language: result.language || 'HINDI',
-    region: result.region || 'Unknown',
-    sentiment: Math.random() * 2 - 1 // Placeholder - would use actual sentiment from analysis
+    region: result.region || 'Unknown'
   }))
 
-  await prisma.sourceCitation.createMany({
+  await prisma.source.createMany({
     data: citations
   })
 }

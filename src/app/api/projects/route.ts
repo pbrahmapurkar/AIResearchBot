@@ -95,11 +95,12 @@ export async function POST(request: NextRequest) {
     const project = await prisma.project.create({
       data: {
         name: validatedData.name,
+        title: validatedData.name, // Set title to match name for now
         industry: validatedData.industry,
-        languages: validatedData.languages,
-        regions: validatedData.regions,
+        languages: JSON.stringify(validatedData.languages),
+        regions: JSON.stringify(validatedData.regions),
         alertsEnabled: validatedData.alertsEnabled,
-        alertThresholds: validatedData.alertThresholds,
+        alertThresholds: validatedData.alertThresholds ? JSON.stringify(validatedData.alertThresholds) : null,
         userId: session.user.id,
         orgId: orgId!
       },

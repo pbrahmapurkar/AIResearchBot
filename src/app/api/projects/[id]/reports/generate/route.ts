@@ -44,7 +44,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     // Check usage quota
-    const subscription = project.organization.planSubscription
+    const subscription = project.organization?.planSubscription
     if (subscription) {
       const quotaExceeded = subscription.plan !== 'PRO' && 
                            subscription.usedThisMonth >= subscription.monthlyQuota
@@ -76,9 +76,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Create initial report record
     const report = await prisma.report.create({
       data: {
-        title: `${project.name} - Consumer Insights Report`,
+        title: `${project.title} - Consumer Insights Report`,
         summaryMd: '',
-        jsonData: {},
+        jsonData: '{}',
         period: period,
         status: 'GENERATING',
         projectId: project.id,
@@ -87,7 +87,15 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     })
 
     // Start background generation
-    generateConsumerInsightsReport(project, report.id).catch(error => {
+    const projectForReport = {
+      id: project.id,
+      name: project.name,
+      industry: project.industry as "FMCG" | "FINTECH" | "ECOMMERCE" | "HEALTHCARE" | "EDUCATION" | "AUTOMOTIVE" | "RETAIL" | "TRAVEL" | "REAL_ESTATE" | "OTHER",
+      languages: JSON.parse(project.languages) as ("HINDI" | "TAMIL" | "TELUGU" | "MARATHI" | "BENGALI" | "GUJARATI" | "KANNADA" | "MALAYALAM" | "PUNJABI" | "ODIA")[],
+      regions: JSON.parse(project.regions) as string[]
+    }
+    
+    generateConsumerInsightsReport(projectForReport, report.id).catch(error => {
       console.error('Report generation failed:', error)
       prisma.report.update({
         where: { id: report.id },
@@ -102,20 +110,22 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         data: { usedThisMonth: subscription.usedThisMonth + 1 }
       })
 
-      // Track usage
-      await prisma.usage.create({
-        data: {
-          userId: session.user.id,
-          orgId: project.orgId,
-          kind: 'REPORT_GENERATION',
-          costUnits: 1,
-          metadata: {
-            projectId: project.id,
-            reportId: report.id,
-            period: period
+      // Track usage only if project has an organization
+      if (project.orgId) {
+        await prisma.usage.create({
+          data: {
+            userId: session.user.id,
+            orgId: project.orgId,
+            kind: 'REPORT_GENERATION',
+            costUnits: 1,
+            metadata: JSON.stringify({
+              projectId: project.id,
+              reportId: report.id,
+              period: period
+            })
           }
-        }
-      })
+        })
+      }
     }
 
     return NextResponse.json(report, { status: 201 })

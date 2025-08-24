@@ -71,14 +71,7 @@ export async function POST(request: NextRequest) {
       const updatedLead = await prisma.lead.update({
         where: { email },
         data: {
-          utm: utm ? {
-            ...utm,
-            source: utm.source,
-            medium: utm.medium,
-            campaign: utm.campaign,
-            term: utm.term,
-            content: utm.content,
-          } : undefined,
+          utm: utm ? JSON.stringify(utm) : undefined,
         }
       })
 
@@ -94,22 +87,11 @@ export async function POST(request: NextRequest) {
     const newLead = await prisma.lead.create({
       data: {
         email,
-        utm: utm ? {
-          source: utm.source,
-          medium: utm.medium,
-          campaign: utm.campaign,
-          term: utm.term,
-          content: utm.content,
-          captureSource: source,
-          ipAddress: ip,
-          userAgent: request.headers.get('user-agent'),
-          referrer: request.headers.get('referer'),
-        } : {
-          captureSource: source,
-          ipAddress: ip,
-          userAgent: request.headers.get('user-agent'),
-          referrer: request.headers.get('referer'),
-        }
+        utm: utm ? JSON.stringify(utm) : undefined,
+        captureSource: source,
+        ipAddress: ip,
+        userAgent: request.headers.get('user-agent'),
+        referrer: request.headers.get('referer'),
       }
     })
 
