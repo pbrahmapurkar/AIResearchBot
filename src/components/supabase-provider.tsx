@@ -28,7 +28,7 @@ export function SupabaseProvider({
   useEffect(() => {
     const path = window.location.pathname
     if (path === '/signin' && session) {
-      const next = search.get('redirect') || '/app'
+      const next = search?.get('redirect') || '/app'
       router.push(next)
     }
   }, [session, router, search])

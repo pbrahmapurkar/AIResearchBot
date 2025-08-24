@@ -64,7 +64,7 @@ export default function ReportsDashboard() {
             createdAt: '2024-03-31T10:00:00Z',
             completedAt: '2024-03-31T10:45:00Z',
             timeframe: { type: 'last_90d' },
-            languages: ['hi', 'en'],
+            languages: ['hi', 'ta'],
             regions: ['MH', 'KA', 'TN'],
             totalMentions: 1250,
             avgSentiment: 0.72,
@@ -111,7 +111,7 @@ export default function ReportsDashboard() {
             status: 'processing',
             createdAt: '2024-01-15T11:00:00Z',
             timeframe: { type: 'last_90d' },
-            languages: ['hi', 'en', 'bn'],
+            languages: ['hi', 'ta', 'bn'],
             regions: ['WB', 'BH', 'UP'],
             totalMentions: 0,
             avgSentiment: 0,
@@ -126,7 +126,7 @@ export default function ReportsDashboard() {
             status: 'queued',
             createdAt: '2024-01-20T15:00:00Z',
             timeframe: { type: 'last_90d' },
-            languages: ['hi', 'en', 'ta'],
+            languages: ['hi', 'mr', 'ta'],
             regions: ['MH', 'KA', 'TN'],
             totalMentions: 0,
             avgSentiment: 0,
@@ -178,7 +178,15 @@ export default function ReportsDashboard() {
     timeframe: Timeframe;
     langs: LanguageCode[];
     regions: RegionCode[];
-    advancedOptions: any;
+    advancedOptions: {
+      dataSources: string[];
+      analysisDepth: 'basic' | 'standard' | 'comprehensive';
+      sentimentThreshold: number;
+      includeCompetitorAnalysis: boolean;
+      customFilters: string[];
+      exportFormats: string[];
+      priority: 'low' | 'medium' | 'high';
+    };
   }) => {
     try {
       // Mock report generation - replace with actual API call
@@ -195,7 +203,7 @@ export default function ReportsDashboard() {
         topRegion: '',
         topTerm: '',
         sourceCount: 0,
-        exportFormats: data.advancedOptions.exportFormats
+        exportFormats: data.advancedOptions.exportFormats || []
       };
 
       setReports(prev => [newReport, ...prev]);
@@ -230,8 +238,6 @@ export default function ReportsDashboard() {
       case 'last_7d': return 'Last 7 days';
       case 'last_30d': return 'Last 30 days';
       case 'last_90d': return 'Last 90 days';
-      case 'last_6m': return 'Last 6 months';
-      case 'last_1y': return 'Last 1 year';
       default: return 'Custom';
     }
   };
@@ -542,7 +548,7 @@ export default function ReportsDashboard() {
         open={showGenerateDialog}
         onOpenChange={setShowGenerateDialog}
         projectId="current-project"
-        defaultLanguages={['hi', 'en']}
+        defaultLanguages={['hi', 'ta']}
         defaultRegions={['MH', 'KA']}
         onGenerate={handleGenerateReport}
       />

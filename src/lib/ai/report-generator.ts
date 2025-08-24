@@ -1,8 +1,9 @@
 import { OpenAI } from 'openai'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+// Only create OpenAI client if API key is available
+const openai = process.env.OPENAI_API_KEY 
+  ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  : null
 import { tavily } from '@/lib/tools/tavily'
 import { prisma } from '@/lib/prisma'
 import { Language, Industry, ReportData } from '@/types/mister-pb'
@@ -186,6 +187,10 @@ async function searchVernacularContent(queries: Array<{query: string, language: 
 }
 
 async function analyzeConsumerContent(searchResults: SearchResult[], project: Project) {
+  if (!openai) {
+    throw new Error('OpenAI client not available. Please check your API key configuration.')
+  }
+  
   const analysisPrompt = `
 You are an expert consumer insights analyst specializing in Indian Tier-2 and Tier-3 markets. 
 
@@ -323,6 +328,10 @@ async function generateStructuredInsights(analysisResults: unknown, _project: Pr
 }
 
 async function generateMarkdownSummary(reportData: ReportData, _searchResults: SearchResult[]): Promise<string> {
+  if (!openai) {
+    throw new Error('OpenAI client not available. Please check your API key configuration.')
+  }
+  
   const summaryPrompt = `
 Generate a comprehensive consumer insights report summary in markdown format based on this analysis:
 

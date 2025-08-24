@@ -218,7 +218,13 @@ export function GenerateReportDialog({
                 <Label>Timeframe</Label>
                 <Select 
                   value={timeframe.type} 
-                  onValueChange={(value) => setTimeframe({ type: value as any })}
+                  onValueChange={(value) => {
+                    if (value === 'custom') {
+                      setTimeframe({ type: 'custom', from: '', to: '' })
+                    } else {
+                      setTimeframe({ type: value as 'last_7d' | 'last_30d' | 'last_90d' })
+                    }
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select timeframe" />
@@ -295,7 +301,7 @@ export function GenerateReportDialog({
                 <Label>Analysis Depth</Label>
                 <Select 
                   value={advancedOptions.analysisDepth} 
-                  onValueChange={(value) => setAdvancedOptions(prev => ({ ...prev, analysisDepth: value as any }))}
+                  onValueChange={(value) => setAdvancedOptions(prev => ({ ...prev, analysisDepth: value as 'basic' | 'standard' | 'comprehensive' }))}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -394,7 +400,7 @@ export function GenerateReportDialog({
                 <Label>Processing Priority</Label>
                 <Select 
                   value={advancedOptions.priority} 
-                  onValueChange={(value) => setAdvancedOptions(prev => ({ ...prev, priority: value as any }))}
+                  onValueChange={(value) => setAdvancedOptions(prev => ({ ...prev, priority: value as 'low' | 'medium' | 'high' }))}
                 >
                   <SelectTrigger>
                     <SelectValue />

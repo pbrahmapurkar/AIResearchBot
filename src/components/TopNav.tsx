@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { TrendingUp, MapPin, User, Shield } from 'lucide-react'
+import { TrendingUp, MapPin, User as UserIcon, Shield } from 'lucide-react'
 import MisterPBLogo from '@/components/logos/MisterPBLogo'
 import { SignOutButton } from '@/components/auth/SignOutButton'
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser'
@@ -29,7 +29,6 @@ export default function TopNav() {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       setUser(user)
-      setLoading(false)
     }
 
     getUser()
@@ -173,7 +172,7 @@ export default function TopNav() {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
                       <Link href="/settings">
-                        <User className="mr-2 h-4 w-4" />
+                        <UserIcon className="mr-2 h-4 w-4" />
                         <span>Profile</span>
                       </Link>
                     </DropdownMenuItem>

@@ -11,7 +11,7 @@ const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{}
 
 export default function ResetPasswordPage() {
   const search = useSearchParams()
-  const token = search.get('token') || ''
+  const token = search?.get('token') || ''
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [show, setShow] = useState(false)

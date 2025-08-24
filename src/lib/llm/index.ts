@@ -85,9 +85,11 @@ export async function planMissionJSON(mission: string): Promise<Plan> {
 import { OpenAI } from 'openai'
 
 export { OpenAI }
-export const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+
+// Only create OpenAI client if API key is available
+export const openai = process.env.OPENAI_API_KEY 
+  ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  : null
 
 export async function runLLM(opts: { provider: Provider, system?: string, user: string }): Promise<string> {
   const p = opts.provider
