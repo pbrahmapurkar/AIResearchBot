@@ -27,7 +27,7 @@ export function SupabaseProvider({
   // Optional: if signed in and on /signin, redirect to ?redirect or /app
   useEffect(() => {
     const path = window.location.pathname
-    if (path === '/signin' && session) {
+    if (path === '/signin' && session && search) {
       const next = search.get('redirect') || '/app'
       router.push(next)
     }

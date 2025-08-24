@@ -1,7 +1,7 @@
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser'
-import { createServerClient } from '@supabase/ssr'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import type { 
+import type {
   Database, 
   Profile, 
   Project, 
@@ -14,10 +14,14 @@ import type {
   NoteUpdate,
   UserProjectWithCount
 } from '@/types/supabase'
+import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 
 // Type-safe Supabase client types
 export type SupabaseClient = ReturnType<typeof createSupabaseBrowserClient>
 export type SupabaseServerClient = ReturnType<typeof createServerClient<Database>>
+
+// Type for realtime payload based on table
+type RealtimePayload<T extends keyof Database['public']['Tables']> = RealtimePostgresChangesPayload<Database['public']['Tables'][T]['Row']>
 
 // ============================================================================
 // CLIENT-SIDE DATABASE OPERATIONS
@@ -395,9 +399,9 @@ export async function getCurrentUserId(): Promise<string | null> {
 /**
  * Subscribe to real-time changes
  */
-export function subscribeToChanges(
-  table: 'profiles' | 'projects' | 'notes',
-  callback: (payload: unknown) => void
+export function subscribeToChanges<T extends 'profiles' | 'projects' | 'notes'>(
+  table: T,
+  callback: (payload: RealtimePayload<T>) => void
 ) {
   const supabase = getSupabaseClient()
   
@@ -414,7 +418,7 @@ export function subscribeToChanges(
 /**
  * Unsubscribe from real-time changes
  */
-export function unsubscribeFromChanges(subscription: unknown) {
+export function unsubscribeFromChanges(subscription: { unsubscribe: () => void } | null | undefined) {
   if (subscription) {
     subscription.unsubscribe()
   }

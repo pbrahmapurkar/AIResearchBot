@@ -14,6 +14,8 @@ import {
   Mail
 } from 'lucide-react'
 
+
+
 // Hero Section Component
 const Hero = () => (
   <section className="min-h-screen flex items-center bg-gradient-to-br from-slate-50 to-white">

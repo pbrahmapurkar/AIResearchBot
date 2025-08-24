@@ -1,14 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { searchWeb } from '@/lib/tools/tavily'
+import { checkRateLimit, getClientIP } from '@/lib/utils'
 
 const SearchRequestSchema = z.object({
   query: z.string().min(1, 'Query is required').max(500, 'Query too long'),
   maxResults: z.number().optional().default(5)
 })
 
+// Rate limiting configuration
+const RATE_LIMIT_CONFIG = {
+  maxRequests: 100, // 100 search requests per window
+  windowMs: 60000   // 1 minute window
+}
+
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting check
+    const clientIP = getClientIP(request)
+    const rateLimit = checkRateLimit(clientIP, RATE_LIMIT_CONFIG)
+    
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { 
+          error: 'Rate limit exceeded. Too many search requests. Please try again later.',
+          results: []
+        },
+        { 
+          status: 429,
+          headers: {
+            'Retry-After': Math.ceil((rateLimit.resetTime - Date.now()) / 1000).toString(),
+            'X-RateLimit-Limit': RATE_LIMIT_CONFIG.maxRequests.toString(),
+            'X-RateLimit-Remaining': rateLimit.remaining.toString(),
+            'X-RateLimit-Reset': new Date(rateLimit.resetTime).toISOString()
+          }
+        }
+      )
+    }
+
     const body = await request.json()
     const { query, maxResults } = SearchRequestSchema.parse(body)
 
@@ -29,6 +58,12 @@ export async function POST(request: NextRequest) {
       query,
       results,
       totalResults: results.length
+    }, {
+      headers: {
+        'X-RateLimit-Limit': RATE_LIMIT_CONFIG.maxRequests.toString(),
+        'X-RateLimit-Remaining': rateLimit.remaining.toString(),
+        'X-RateLimit-Reset': new Date(rateLimit.resetTime).toISOString()
+      }
     })
 
   } catch (error) {

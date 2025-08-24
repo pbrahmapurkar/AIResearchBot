@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { MissionOrchestrator } from '@/lib/research/missionOrchestrator'
+import { MissionOrchestrator, type ResearchMission } from '@/lib/research/missionOrchestrator'
 // import { ModelOrchestrator } from '@/lib/research/modelIntegration' // TODO: Use for advanced model routing
 import { z } from 'zod'
+import { checkRateLimit, getClientIP } from '@/lib/utils'
 
 const ResearchRequestSchema = z.object({
   prompt: z.string().min(10, 'Prompt must be at least 10 characters'),
@@ -12,12 +13,56 @@ const ResearchRequestSchema = z.object({
   enableModelOrchestration: z.boolean().default(true)
 })
 
+// Rate limiting configuration
+const RATE_LIMIT_CONFIG = {
+  maxRequests: 30, // 30 research requests per window
+  windowMs: 300000  // 5 minute window (research is resource-intensive)
+}
+
 const missionOrchestrator = new MissionOrchestrator()
 // const modelOrchestrator = new ModelOrchestrator() // TODO: Implement when needed
+
+// Helper function to calculate mission costs
+function calculateMissionCosts(completedMission: ResearchMission) {
+  // TODO: Implement proper cost calculation
+  return {
+    estimatedCost: 0.05,
+    currency: 'USD',
+    breakdown: {
+      search: 0.02,
+      analysis: 0.02,
+      synthesis: 0.01
+    }
+  }
+}
 
 // POST /api/research - Start new research mission
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting check
+    const clientIP = getClientIP(request)
+    const rateLimit = checkRateLimit(clientIP, RATE_LIMIT_CONFIG)
+    
+    if (!rateLimit.allowed) {
+      return NextResponse.json({
+        success: false,
+        error: 'Rate limit exceeded',
+        details: {
+          message: 'Too many research requests. Please try again later.',
+          resetTime: new Date(rateLimit.resetTime).toISOString(),
+          retryAfter: Math.ceil((rateLimit.resetTime - Date.now()) / 1000)
+        }
+      }, { 
+        status: 429,
+        headers: {
+          'Retry-After': Math.ceil((rateLimit.resetTime - Date.now()) / 1000).toString(),
+          'X-RateLimit-Limit': RATE_LIMIT_CONFIG.maxRequests.toString(),
+          'X-RateLimit-Remaining': rateLimit.remaining.toString(),
+          'X-RateLimit-Reset': new Date(rateLimit.resetTime).toISOString()
+        }
+      })
+    }
+
     const body = await request.json()
     const validatedInput = ResearchRequestSchema.parse(body)
 
@@ -48,7 +93,13 @@ export async function POST(request: NextRequest) {
         languagesProcessed: mission.targetLanguages,
         executionTime: completedMission.completedAt ? 
           completedMission.completedAt - completedMission.createdAt : 0,
-        modelsUsed: completedMission.subtasks.map(t => t.assignedModel)
+        modelsUsed: completedMission.subtasks.map((t) => t.assignedModel)
+      }
+    }, {
+      headers: {
+        'X-RateLimit-Limit': RATE_LIMIT_CONFIG.maxRequests.toString(),
+        'X-RateLimit-Remaining': rateLimit.remaining.toString(),
+        'X-RateLimit-Reset': new Date(rateLimit.resetTime).toISOString()
       }
     })
 
@@ -100,47 +151,20 @@ export async function GET(request: NextRequest) {
       }
     ]
 
-    const filteredMissions = status 
-      ? mockMissions.filter(m => m.status === status)
-      : mockMissions
-
     return NextResponse.json({
       success: true,
-      missions: filteredMissions.slice(0, limit),
-      total: filteredMissions.length
+      missions: mockMissions.slice(0, limit),
+      total: mockMissions.length,
+      limit,
+      status
     })
 
   } catch (error) {
-    console.error('Failed to fetch missions:', error)
+    console.error('Failed to fetch research missions:', error)
     return NextResponse.json({
       success: false,
-      error: 'Failed to fetch research missions'
+      error: 'Failed to fetch research missions',
+      details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 })
-  }
-}
-
-interface CostBreakdown {
-  model: string
-  cost: number
-  duration: number
-}
-
-interface MissionCosts {
-  total: number
-  breakdown: CostBreakdown[]
-}
-
-function calculateMissionCosts(mission: { subtasks?: Array<{ assignedModel: string, cost?: number, duration?: number }> }): MissionCosts {
-  const totalCost = mission.subtasks?.reduce((sum: number, task) => {
-    return sum + (task.cost || 0)
-  }, 0) || 0
-
-  return {
-    total: totalCost,
-    breakdown: mission.subtasks?.map((task) => ({
-      model: task.assignedModel,
-      cost: task.cost || 0,
-      duration: task.duration || 0
-    })) || []
   }
 }

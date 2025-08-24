@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { cookies, headers } from 'next/headers'
-import { authOptions } from '@/lib/auth'
+import { getServerSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { generateConsumerInsightsReport } from '@/lib/ai/report-generator'
 import { z } from 'zod'
@@ -16,9 +14,7 @@ const GenerateReportSchema = z.object({
 
 export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
-    const cookieStore = await cookies()
-    const headersList = await headers()
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession()
     
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

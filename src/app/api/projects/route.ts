@@ -1,16 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { cookies, headers } from 'next/headers'
-import { authOptions } from '@/lib/auth'
+import { getServerSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { CreateProjectSchema } from '@/types/mister-pb'
 import { z } from 'zod'
 
-export async function GET(_request: NextRequest) {
+export async function GET() {
   try {
-    const cookieStore = await cookies()
-    const headersList = await headers()
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession()
     
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -44,9 +40,7 @@ export async function GET(_request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    const headersList = await headers()
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession()
     
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

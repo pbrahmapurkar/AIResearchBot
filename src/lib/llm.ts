@@ -1,196 +1,98 @@
-import OpenAI from 'openai'
+import OpenAI from "openai";
+import {
+  LlmError, PlanOutputSchema, StepOutputSchema, ReviewScoreSchema,
+  type PlanOutput, type StepOutput, type ReviewScore,
+} from "./llm.type";
+import { PLAN_SYS, PLAN_USER, EXECUTE_SYS, EXECUTE_USER, REVIEW_SYS, REVIEW_USER, SYNTH_SYS, SYNTH_USER } from "./prompts/llm";
 
-export interface PlanOutput {
-  steps: Array<{
-    title: string
-    objective: string
-    toolsRequired: string[]
-  }>
-  estimatedDuration: number
-}
+const LLM_MODEL = process.env.LLM_MODEL || "gpt-4o-mini";
+const LLM_BASE_URL = process.env.OPENAI_BASE_URL || undefined;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-export interface StepOutput {
-  content: string
-  confidence: number
-  toolsUsed: string[]
-  sources?: Array<{
-    title: string
-    url: string
-    snippet: string
-  }>
-}
+const withTimeout = async <T>(p: Promise<T>, ms = 45_000): Promise<T> =>
+  Promise.race([
+    p,
+    new Promise<never>((_, rej) => setTimeout(() => rej(new LlmError(`LLM request timed out after ${ms}ms`)), ms)),
+  ]);
 
-export interface ReviewScore {
-  confidence: number
-  needsRetry: boolean
-  feedback: string
-}
+const retry = async <T>(fn: () => Promise<T>, attempts = 2): Promise<T> => {
+  let last: Error = new Error("Unknown error");
+  for (let i = 0; i < attempts; i++) {
+    try { 
+      return await fn(); 
+    } catch (e: unknown) {
+      last = e instanceof Error ? e : new Error(String(e));
+      const m = (last.message || "").toLowerCase();
+      const transient = m.includes("rate") || m.includes("429") || m.includes("overloaded") || m.includes("timeout") || m.startsWith("5");
+      if (!transient || i === attempts - 1) break;
+      await new Promise(r => setTimeout(r, 400 * (i + 1) + Math.random()*150));
+    }
+  }
+  throw last;
+};
+
+const extractJson = (s: string) => s.match(/\{[\s\S]*\}$/)?.[0] ?? s;
+
+const mkClient = () => {
+  if (!OPENAI_API_KEY) throw new LlmError("OPENAI_API_KEY environment variable is required");
+  return new OpenAI({ apiKey: OPENAI_API_KEY, baseURL: LLM_BASE_URL });
+};
 
 class LLMService {
-  private client: OpenAI | null = null
-
-  private getClient(): OpenAI {
-    if (!this.client) {
-      const apiKey = process.env.OPENAI_API_KEY
-      if (!apiKey) {
-        throw new Error('OPENAI_API_KEY environment variable is required')
-      }
-      
-      this.client = new OpenAI({
-        apiKey,
-        baseURL: process.env.OPENAI_BASE_URL || undefined,
-      })
-    }
-    return this.client
-  }
+  private client: OpenAI | null = null;
+  private getClient() { return (this.client ??= mkClient()); }
 
   async plan(mission: string): Promise<PlanOutput> {
-    const prompt = `
-You are an AI mission planner. Break down this mission into 3-8 atomic, executable steps.
-Each step should be specific and achievable with available tools (web search, content fetch, analysis).
-
-Mission: ${mission}
-
-Respond with JSON in this format:
-{
-  "steps": [
-    {
-      "title": "Clear, actionable step title",
-      "objective": "Specific goal and expected outcome",
-      "toolsRequired": ["searchWeb", "fetchContent", "writeArtifact"]
-    }
-  ],
-  "estimatedDuration": 300
-}
-
-Make steps logical and sequential. Focus on research, analysis, and synthesis.
-`
-
-    const response = await this.getClient().chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.1,
-      response_format: { type: 'json_object' }
-    })
-
-    const content = response.choices[0]?.message?.content
-    if (!content) {
-      throw new Error('No response from LLM')
-    }
-
-    try {
-      return JSON.parse(content) as PlanOutput
-    } catch (error) {
-      throw new Error(`Failed to parse LLM response: ${error}`)
-    }
+    const run = async (): Promise<PlanOutput> => {
+      const res = await withTimeout(this.getClient().chat.completions.create({
+        model: LLM_MODEL, temperature: 0.1, response_format: { type: "json_object" },
+        messages: [{ role: "system", content: PLAN_SYS }, { role: "user", content: PLAN_USER(mission) }],
+      }));
+      const raw = extractJson(res.choices[0]?.message?.content ?? "");
+      const parsed = JSON.parse(raw);
+      return PlanOutputSchema.parse(parsed);
+    };
+    return retry(run);
   }
 
   async execute(objective: string, context: string[], availableTools: string[]): Promise<StepOutput> {
-    const prompt = `
-You are executing a step in a mission. Use the available tools to achieve the objective.
-
-Objective: ${objective}
-Available Tools: ${availableTools.join(', ')}
-Context from previous steps: ${context.join('\n')}
-
-Provide a detailed execution plan and expected outcome. If you need to search for information, be specific about search queries. If you need to fetch content, identify the most relevant URLs.
-
-Respond with JSON:
-{
-  "content": "Detailed execution plan or actual content if this is a synthesis step",
-  "confidence": 0.9,
-  "toolsUsed": ["searchWeb", "fetchContent"],
-  "sources": [
-    {"title": "Source Title", "url": "https://...", "snippet": "Relevant excerpt"}
-  ]
-}
-`
-
-    const response = await this.getClient().chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.2,
-      response_format: { type: 'json_object' }
-    })
-
-    const content = response.choices[0]?.message?.content
-    if (!content) {
-      throw new Error('No response from LLM')
-    }
-
-    try {
-      return JSON.parse(content) as StepOutput
-    } catch (error) {
-      throw new Error(`Failed to parse LLM response: ${error}`)
-    }
+    const run = async (): Promise<StepOutput> => {
+      const res = await withTimeout(this.getClient().chat.completions.create({
+        model: LLM_MODEL, temperature: 0.2, response_format: { type: "json_object" },
+        messages: [{ role: "system", content: EXECUTE_SYS }, { role: "user", content: EXECUTE_USER(objective, context, availableTools) }],
+      }));
+      const raw = extractJson(res.choices[0]?.message?.content ?? "");
+      const data = JSON.parse(raw);
+      if (Array.isArray(data?.toolsUsed)) {
+        data.toolsUsed = data.toolsUsed.filter((t: string) => ["searchWeb","fetchContent","writeArtifact","analyze"].includes(t));
+      }
+      return StepOutputSchema.parse(data);
+    };
+    return retry(run);
   }
 
   async review(stepOutput: string, originalObjective: string): Promise<ReviewScore> {
-    const prompt = `
-Review this step output against the original objective. Assess quality and completeness.
-
-Original Objective: ${originalObjective}
-Step Output: ${stepOutput}
-
-Rate the output and determine if it needs to be retried.
-
-Respond with JSON:
-{
-  "confidence": 0.85,
-  "needsRetry": false,
-  "feedback": "Detailed assessment of quality and completeness"
-}
-`
-
-    const response = await this.getClient().chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.1,
-      response_format: { type: 'json_object' }
-    })
-
-    const content = response.choices[0]?.message?.content
-    if (!content) {
-      throw new Error('No response from LLM')
-    }
-
-    try {
-      return JSON.parse(content) as ReviewScore
-    } catch (error) {
-      throw new Error(`Failed to parse LLM response: ${error}`)
-    }
+    const run = async (): Promise<ReviewScore> => {
+      const res = await withTimeout(this.getClient().chat.completions.create({
+        model: LLM_MODEL, temperature: 0.1, response_format: { type: "json_object" },
+        messages: [{ role: "system", content: REVIEW_SYS }, { role: "user", content: REVIEW_USER(stepOutput, originalObjective) }],
+      }));
+      const raw = extractJson(res.choices[0]?.message?.content ?? "");
+      const parsed = JSON.parse(raw);
+      return ReviewScoreSchema.parse(parsed);
+    };
+    return retry(run);
   }
 
   async synthesize(artifacts: Array<{ title: string; content: string; type: string }>): Promise<string> {
-    const prompt = `
-Create a comprehensive final report synthesizing these artifacts into a cohesive deliverable.
-
-Artifacts:
-${artifacts.map(a => `${a.title} (${a.type}):\n${a.content}`).join('\n\n')}
-
-Create a well-structured report with:
-1. Executive summary
-2. Key findings
-3. Detailed analysis
-4. Conclusions and recommendations
-5. Sources and citations
-
-Use markdown formatting for the final report.
-`
-
-    const response = await this.getClient().chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.3,
-    })
-
-    const content = response.choices[0]?.message?.content
-    if (!content) {
-      throw new Error('No response from LLM')
-    }
-
-    return content
+    const res = await withTimeout(this.getClient().chat.completions.create({
+      model: LLM_MODEL, temperature: 0.3,
+      messages: [{ role: "system", content: SYNTH_SYS }, { role: "user", content: SYNTH_USER(artifacts) }],
+    }));
+    const content = res.choices[0]?.message?.content;
+    if (!content) throw new LlmError("LLM returned empty content (synthesize)");
+    return content;
   }
 }
 
-export const llmService = new LLMService()
+export const llmService = new LLMService();

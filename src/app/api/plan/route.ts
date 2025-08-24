@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { planMissionJSON } from '@/lib/llm/index'
+import { checkRateLimit, getClientIP } from '@/lib/utils'
 
 // Request validation schema
 const RequestSchema = z.object({
@@ -31,8 +32,35 @@ const MissionPlanSchema = z.object({
   steps: z.array(PlanStepSchema)
 })
 
+// Rate limiting configuration
+const RATE_LIMIT_CONFIG = {
+  maxRequests: 50, // 50 plan requests per window
+  windowMs: 300000  // 5 minute window (planning is resource-intensive)
+}
+
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting check
+    const clientIP = getClientIP(request)
+    const rateLimit = checkRateLimit(clientIP, RATE_LIMIT_CONFIG)
+    
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { 
+          error: 'Rate limit exceeded. Too many planning requests. Please try again later.'
+        },
+        { 
+          status: 429,
+          headers: {
+            'Retry-After': Math.ceil((rateLimit.resetTime - Date.now()) / 1000).toString(),
+            'X-RateLimit-Limit': RATE_LIMIT_CONFIG.maxRequests.toString(),
+            'X-RateLimit-Remaining': rateLimit.remaining.toString(),
+            'X-RateLimit-Reset': new Date(rateLimit.resetTime).toISOString()
+          }
+        }
+      )
+    }
+
     // Parse and validate request body
     const body = await request.json()
     const { mission } = RequestSchema.parse(body)
@@ -58,7 +86,13 @@ export async function POST(request: NextRequest) {
     // Validate the response shape
     const validatedPlan = MissionPlanSchema.parse(plan)
 
-    return NextResponse.json(validatedPlan)
+    return NextResponse.json(validatedPlan, {
+      headers: {
+        'X-RateLimit-Limit': RATE_LIMIT_CONFIG.maxRequests.toString(),
+        'X-RateLimit-Remaining': rateLimit.remaining.toString(),
+        'X-RateLimit-Reset': new Date(rateLimit.resetTime).toISOString()
+      }
+    })
 
   } catch (error) {
     console.error('Planning error:', error)

@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { signIn } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
@@ -10,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Mail, Loader2, Chrome, CheckCircle, AlertCircle } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
+import { createSupabaseBrowserClient } from '@/lib/supabase/browser'
 
 export default function AuthCard() {
   const [email, setEmail] = useState('')
@@ -30,13 +30,15 @@ export default function AuthCard() {
     setError('')
 
     try {
-      const result = await signIn('email', {
+      const supabase = createSupabaseBrowserClient()
+      const { error } = await supabase.auth.signInWithOtp({
         email,
-        redirect: false,
-        callbackUrl,
+        options: {
+          emailRedirectTo: `${window.location.origin}${callbackUrl}`
+        }
       })
 
-      if (result?.error) {
+      if (error) {
         setError('Failed to send sign-in link. Please try again.')
         toast({
           title: 'Error',
@@ -66,7 +68,17 @@ export default function AuthCard() {
   const handleGoogleSignIn = async () => {
     setIsLoading(true)
     try {
-      await signIn('google', { callbackUrl })
+      const supabase = createSupabaseBrowserClient()
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}${callbackUrl}`
+        }
+      })
+      
+      if (error) {
+        throw error
+      }
     } catch (_error) {
       setError('Failed to sign in with Google. Please try again.')
       toast({
