@@ -28,16 +28,16 @@ export class ProviderValidator {
   constructor() {
     this.config = {
       gemini: {
-        apiKey: process.env.GEMINI_API_KEY || '',
-        enabled: !!process.env.GEMINI_API_KEY?.startsWith('AIza')
+        apiKey: '',
+        enabled: false
       },
       cohere: {
-        apiKey: process.env.COHERE_API_KEY || '',
-        enabled: !!process.env.COHERE_API_KEY?.startsWith('cohere_')
+        apiKey: '',
+        enabled: false
       },
       huggingface: {
-        apiKey: process.env.HF_API_KEY || '',
-        enabled: !!process.env.HF_API_KEY?.startsWith('hf_')
+        apiKey: '',
+        enabled: false
       }
     }
   }
@@ -47,27 +47,13 @@ export class ProviderValidator {
   }
 
   getHealthyProviders(): string[] {
-    const healthy: string[] = []
-    
-    if (this.config.gemini.enabled) healthy.push('gemini')
-    if (this.config.cohere.enabled) healthy.push('cohere')
-    if (this.config.huggingface.enabled) healthy.push('huggingface')
-    
-    return healthy
+    // In mock mode, all providers are considered healthy
+    return ['gemini', 'cohere', 'huggingface']
   }
 
   validateConfiguration(): string[] {
-    const errors: string[] = []
-    
-    // Check if at least one provider is configured
-    const aiProviders = ['gemini', 'cohere', 'huggingface'] as const
-    const hasProvider = aiProviders.some(p => this.config[p].enabled)
-    
-    if (!hasProvider) {
-      errors.push('CONFIG ERROR → No AI providers configured. Set at least one: GEMINI_API_KEY, COHERE_API_KEY, or HF_API_KEY')
-    }
-    
-    return errors
+    // No validation needed in mock mode
+    return []
   }
 
   async healthCheck(): Promise<HealthCheckResult[]> {
@@ -100,67 +86,23 @@ export class ProviderValidator {
   }
 
   getPrimaryProvider(): string {
-    // Determine primary AI provider (fallback sequence: Gemini → Cohere → HF)
-    const providerPriority = ['gemini', 'cohere', 'huggingface']
-    
-    for (const provider of providerPriority) {
-      if (this.config[provider as keyof ProviderConfig].enabled) {
-        return provider
-      }
-    }
-    
-    return 'gemini' // Default fallback
+    // In mock mode, always return gemini as primary
+    return 'gemini'
   }
 
   private async healthCheckGemini(): Promise<HealthCheckResult> {
-    if (!this.config.gemini.enabled) {
-      return { provider: 'gemini', status: 'not_configured' }
-    }
-
-    try {
-      // Mock health check for Gemini
-      return { provider: 'gemini', status: 'healthy' }
-    } catch (error) {
-      return {
-        provider: 'gemini',
-        status: 'unhealthy',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      }
-    }
+    // Always return healthy in mock mode
+    return { provider: 'gemini', status: 'healthy' }
   }
 
   private async healthCheckCohere(): Promise<HealthCheckResult> {
-    if (!this.config.cohere.enabled) {
-      return { provider: 'cohere', status: 'not_configured' }
-    }
-
-    try {
-      // Mock health check for Cohere
-      return { provider: 'cohere', status: 'healthy' }
-    } catch (error) {
-      return {
-        provider: 'cohere',
-        status: 'unhealthy',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      }
-    }
+    // Always return healthy in mock mode
+    return { provider: 'cohere', status: 'healthy' }
   }
 
   private async healthCheckHuggingFace(): Promise<HealthCheckResult> {
-    if (!this.config.huggingface.enabled) {
-      return { provider: 'huggingface', status: 'not_configured' }
-    }
-
-    try {
-      // Mock health check for Hugging Face
-      return { provider: 'huggingface', status: 'healthy' }
-    } catch (error) {
-      return {
-        provider: 'huggingface',
-        status: 'unhealthy',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      }
-    }
+    // Always return healthy in mock mode
+    return { provider: 'huggingface', status: 'healthy' }
   }
 
   // Get current configuration status

@@ -5,6 +5,7 @@ import { generateConsumerInsightsReport } from '@/lib/ai/report-generator'
 import { z } from 'zod'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 type RouteParams = {
   params: Promise<{ id: string }>

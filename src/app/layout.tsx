@@ -8,6 +8,8 @@ import type { CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { SupabaseProvider } from '@/components/supabase-provider';
 
+export const dynamic = 'force-dynamic'
+
 const inter = Inter({ subsets: ["latin"] });
 const spaceGrotesk = Space_Grotesk({ 
   subsets: ["latin"],

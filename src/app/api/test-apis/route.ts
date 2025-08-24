@@ -1,24 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiConfig } from '@/lib/config/apiConfig'
 import { mockModelClient } from '@/lib/research/modelIntegration'
 
 export const runtime = 'nodejs'
 
 export async function GET(request: NextRequest) {
   try {
-    // Test API configuration
+    // Test API configuration - all providers in mock mode
     const config = {
       gemini: {
-        configured: apiConfig.gemini.enabled,
-        baseUrl: apiConfig.gemini.baseUrl
+        configured: false,
+        baseUrl: 'Mock Mode'
       },
       cohere: {
-        configured: apiConfig.cohere.enabled,
-        baseUrl: apiConfig.cohere.baseUrl
+        configured: false,
+        baseUrl: 'Mock Mode'
       },
       huggingface: {
-        configured: apiConfig.huggingface.enabled,
-        baseUrl: apiConfig.huggingface.baseUrl
+        configured: false,
+        baseUrl: 'Mock Mode'
       }
     }
 
@@ -27,7 +26,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       status: 'success',
-      message: 'API test completed',
+      message: 'API test completed - Running in Mock Mode',
       config,
       mockTest
     })

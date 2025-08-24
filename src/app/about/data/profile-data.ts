@@ -35,7 +35,7 @@ export const profileData = {
   personal: {
     name: "Pratik Prakash Brahmapurkar",
     title: "Business Analyst • Entrepreneur • AI Enthusiast",
-    avatar: "/profile-avatar.jpg", // Add actual profile image (400x400px recommended)
+    avatar: "/images/profile/pratik-profile.jpg", // Add your profile photo here (400x400px recommended)
     location: "Mumbai, India",
     email: "contact@pratikbrahmapurkar.com", // Update with actual email if needed
     bio: {
@@ -193,6 +193,7 @@ export const profileData = {
       title: "Asanas in the Ganges: A Journey of Transformation Through Yoga and Self-Discovery",
       year: "2025",
       genre: "Memoir",
+      coverImage: "/images/profile/book-cover.jpg", // Add your book cover image here (200x280px recommended)
       description: "A deeply personal memoir exploring themes of yoga, resilience, and mindfulness during the global pandemic. The book chronicles my transformative journey from corporate life to finding inner peace through yoga practice in Rishikesh.",
       themes: ["Yoga Philosophy", "Mindfulness", "Personal Transformation", "Pandemic Resilience", "Eastern Philosophy"],
       amazonUrl: "https://www.amazon.com/Asanas-Ganges-Journey-Transformation-Self-Discovery-ebook/dp/B0DTKKH4Q1/",

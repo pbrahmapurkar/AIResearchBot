@@ -10,8 +10,6 @@ import {
   Home, 
   FolderOpen, 
   FileText, 
-  BarChart3, 
-  Settings,
   Plus,
   Search
 } from 'lucide-react'
@@ -19,10 +17,9 @@ import {
 const navigation = [
   { name: 'Dashboard', href: '/app', icon: Home },
   { name: 'Projects', href: '/app/projects', icon: FolderOpen },
-  { name: 'Reports', href: '/app/reports', icon: FileText },
-  { name: 'Search', href: '/app/search', icon: Search },
-  { name: 'Insights', href: '/app/insights', icon: BarChart3 },
-  { name: 'Settings', href: '/app/settings', icon: Settings },
+  { name: 'Reports', href: '/reports-page', icon: FileText },
+  { name: 'Search', href: '/search-page', icon: Search },
+  { name: 'Onboarding', href: '/onboarding-page', icon: Plus },
 ]
 
 export function Sidebar() {
@@ -111,9 +108,7 @@ export function Sidebar() {
       <div className="p-4 border-t border-gray-200">
         <div className="text-xs text-gray-500 text-center">
           <p>Need help?</p>
-          <Link href="/support" className="text-blue-600 hover:underline">
-            Contact Support
-          </Link>
+          <p className="text-blue-600">Contact your administrator</p>
         </div>
       </div>
     </div>

@@ -85,10 +85,10 @@ export default function ApiStatusDashboard() {
       </div>
 
       <div className="p-4 bg-blue-50 rounded-lg">
-        <h3 className="font-semibold text-blue-900 mb-2">Configuration Note</h3>
+        <h3 className="font-semibold text-blue-900 mb-2">Mock Mode Active</h3>
         <p className="text-sm text-blue-800">
-          This application is currently using mock implementations for AI functionality. 
-          To enable real AI providers, configure the appropriate API keys in your environment variables.
+          This application is currently running in mock mode with simulated AI responses. 
+          All AI functionality is provided by local mock implementations for demonstration purposes.
         </p>
       </div>
     </div>

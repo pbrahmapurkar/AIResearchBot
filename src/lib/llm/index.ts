@@ -159,25 +159,14 @@ export async function callLLM(opts: LLMOptions): Promise<LLMResponse> {
 
 // Auto-select best available provider
 export function getBestProvider(): Provider {
-  // Check environment variables for available providers
-  if (process.env.GEMINI_API_KEY) return 'gemini'
-  if (process.env.COHERE_API_KEY) return 'cohere'
-  if (process.env.MISTRAL_API_KEY) return 'mistral'
-  
-  // Default to gemini if no keys are available
+  // In mock mode, always return gemini
   return 'gemini'
 }
 
 // Fallback provider selection
 export function getFallbackProvider(): Provider {
-  const providers: Provider[] = ['gemini', 'cohere', 'mistral']
-  
-  for (const provider of providers) {
-    const envKey = `${provider.toUpperCase()}_API_KEY`
-    if (process.env[envKey]) return provider
-  }
-  
-  return 'gemini' // Default fallback
+  // In mock mode, always return gemini
+  return 'gemini'
 }
 
 /** Simple, practical router */

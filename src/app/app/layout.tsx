@@ -6,6 +6,8 @@ import { redirect } from 'next/navigation'
 import { Sidebar } from '@/components/app/sidebar'
 import { TopBar } from '@/components/app/topbar'
 
+export const dynamic = 'force-dynamic'
+
 interface AppLayoutProps {
   children: ReactNode
 }

@@ -1,10 +1,13 @@
+import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 import { createServerClient } from '@supabase/ssr';
 import type { CookieOptions } from '@supabase/ssr';
-import { cookies } from 'next/headers';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, BarChart3, FileText, Users, Globe, Target } from 'lucide-react';
 import Link from 'next/link';
+
+export const dynamic = 'force-dynamic'
 
 export default async function AppHome() {
   const cookieStore = await cookies();
@@ -55,7 +58,7 @@ export default async function AppHome() {
           </CardHeader>
           <CardContent>
             <Button asChild className="w-full">
-              <Link href="/app/reports">Start Analysis</Link>
+              <Link href="/reports-page">Start Analysis</Link>
             </Button>
           </CardContent>
         </Card>
@@ -89,7 +92,7 @@ export default async function AppHome() {
           </CardHeader>
           <CardContent>
             <Button asChild variant="outline" className="w-full">
-              <Link href="/app/reports">View Reports</Link>
+              <Link href="/reports-page">View Reports</Link>
             </Button>
           </CardContent>
         </Card>
@@ -106,7 +109,7 @@ export default async function AppHome() {
           </CardHeader>
           <CardContent>
             <Button asChild variant="outline" className="w-full">
-              <Link href="/app/insights">Explore Insights</Link>
+              <Link href="/search-page">Explore Insights</Link>
             </Button>
           </CardContent>
         </Card>
@@ -123,7 +126,7 @@ export default async function AppHome() {
           </CardHeader>
           <CardContent>
             <Button asChild variant="outline" className="w-full">
-              <Link href="/app/settings">Configure</Link>
+              <Link href="/onboarding-page">Configure</Link>
             </Button>
           </CardContent>
         </Card>
@@ -140,7 +143,7 @@ export default async function AppHome() {
           </CardHeader>
           <CardContent>
             <Button asChild variant="outline" className="w-full">
-              <Link href="/app/settings">Manage Profile</Link>
+              <Link href="/onboarding-page">Manage Profile</Link>
             </Button>
           </CardContent>
         </Card>

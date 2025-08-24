@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { z } from 'zod'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 type RouteParams = {
   params: Promise<{ id: string }>

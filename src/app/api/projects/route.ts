@@ -5,6 +5,7 @@ import { CreateProjectSchema } from '@/types/mister-pb'
 import { z } from 'zod'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {

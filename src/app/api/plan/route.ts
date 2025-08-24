@@ -65,19 +65,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { mission } = RequestSchema.parse(body)
 
-    // Check if at least one LLM provider is available
-    const hasProvider = process.env.GEMINI_API_KEY || 
-                       process.env.COHERE_API_KEY || 
-                       process.env.HF_API_KEY
-    
-    if (!hasProvider) {
-      return NextResponse.json(
-        { 
-          error: 'No LLM provider configured. Please add at least one API key (GEMINI_API_KEY, COHERE_API_KEY, or HF_API_KEY) to your .env.local file.' 
-        }, { status: 500 }
-      )
-    }
-
     // Get plan from the selected LLM provider
     const plan = await planMissionJSON(mission)
 
