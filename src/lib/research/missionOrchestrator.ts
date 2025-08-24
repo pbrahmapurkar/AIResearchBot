@@ -90,7 +90,7 @@ export class MissionOrchestrator {
     vernacularNLP: 'huggingface-indicbert', 
     sentiment: 'huggingface-multilingual-sentiment',
     extraction: 'together-mixtral',
-    synthesis: 'openai-gpt4',
+    synthesis: 'gemini-pro',
     validation: 'anthropic-claude'
   }
 

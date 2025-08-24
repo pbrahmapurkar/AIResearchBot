@@ -85,7 +85,7 @@ export const SECURITY_CONFIG = {
     'style-src': ["'self'", "'unsafe-inline'"],
     'img-src': ["'self'", 'data:', 'https:'],
     'font-src': ["'self'", 'https://fonts.gstatic.com'],
-    'connect-src': ["'self'", 'https://api.openai.com', 'https://generativelanguage.googleapis.com'],
+    'connect-src': ["'self'", 'https://generativelanguage.googleapis.com', 'https://api.cohere.ai', 'https://api-inference.huggingface.co'],
     'frame-ancestors': ["'none'"],
   }
 }

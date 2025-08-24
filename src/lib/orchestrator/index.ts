@@ -152,9 +152,9 @@ Provide a detailed response with proper citations. Format citations as [1], [2],
     }
   }
 
-  // AI completion with fallback sequence: OpenAI → Gemini → Cohere → HF
+  // AI completion with fallback sequence: Gemini → Cohere → HF
   private async completeWithAI(prompt: string, request: TaskRequest): Promise<{ result: string; provider: string }> {
-    const fallbackSequence = ['openai', 'gemini', 'cohere', 'huggingface']
+    const fallbackSequence = ['gemini', 'cohere', 'huggingface']
     const availableProviders = fallbackSequence.filter(p => this.config?.healthyProviders.includes(p))
 
     for (const provider of availableProviders) {
@@ -172,13 +172,35 @@ Provide a detailed response with proper citations. Format citations as [1], [2],
     throw new Error('All AI providers failed')
   }
 
+  private async getAICompletion(prompt: string, maxTokens: number, temperature: number): Promise<string> {
+    const fallbackSequence = ['gemini', 'cohere', 'huggingface']
+    
+    for (const provider of fallbackSequence) {
+      try {
+        switch (provider) {
+          case 'gemini':
+            return await this.callGemini(prompt, maxTokens, temperature)
+          case 'cohere':
+            return await this.callCohere(prompt, maxTokens, temperature)
+          case 'huggingface':
+            return await this.callHuggingFace(prompt, maxTokens, temperature)
+          default:
+            continue
+        }
+      } catch (error) {
+        console.warn(`Provider ${provider} failed:`, error)
+        continue
+      }
+    }
+    
+    throw new Error('All AI providers failed')
+  }
+
   private async callProvider(provider: string, prompt: string, request: TaskRequest): Promise<string> {
     const maxTokens = request.maxTokens || 1000
     const temperature = request.temperature || 0.7
 
     switch (provider) {
-      case 'openai':
-        return await this.callOpenAI(prompt, maxTokens, temperature)
       case 'gemini':
         return await this.callGemini(prompt, maxTokens, temperature)
       case 'cohere':
@@ -188,29 +210,6 @@ Provide a detailed response with proper citations. Format citations as [1], [2],
       default:
         throw new Error(`Unknown provider: ${provider}`)
     }
-  }
-
-  private async callOpenAI(prompt: string, maxTokens: number, temperature: number): Promise<string> {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'gpt-4',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: maxTokens,
-        temperature
-      })
-    })
-
-    if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.status}`)
-    }
-
-    const data = await response.json()
-    return data.choices[0]?.message?.content || 'No response generated'
   }
 
   private async callGemini(prompt: string, maxTokens: number, temperature: number): Promise<string> {

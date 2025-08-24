@@ -66,17 +66,15 @@ export async function POST(request: NextRequest) {
     const { mission } = RequestSchema.parse(body)
 
     // Check if at least one LLM provider is available
-    const hasProvider = process.env.OPENAI_API_KEY || 
-                       process.env.GEMINI_API_KEY || 
+    const hasProvider = process.env.GEMINI_API_KEY || 
                        process.env.COHERE_API_KEY || 
                        process.env.HF_API_KEY
     
     if (!hasProvider) {
       return NextResponse.json(
         { 
-          error: 'No LLM provider configured. Please add at least one API key (OPENAI_API_KEY, GEMINI_API_KEY, COHERE_API_KEY, or HF_API_KEY) to your .env.local file.' 
-        },
-        { status: 500 }
+          error: 'No LLM provider configured. Please add at least one API key (GEMINI_API_KEY, COHERE_API_KEY, or HF_API_KEY) to your .env.local file.' 
+        }, { status: 500 }
       )
     }
 

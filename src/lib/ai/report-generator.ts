@@ -1,8 +1,4 @@
-import { OpenAI } from 'openai'
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+// Mock implementation without OpenAI dependency
 import { tavily } from '@/lib/tools/tavily'
 import { prisma } from '@/lib/prisma'
 import { Language, Industry, ReportData } from '@/types/mister-pb'
@@ -34,7 +30,7 @@ export async function generateConsumerInsightsReport(project: Project, reportId:
     // 2. Search for vernacular consumer content
     const searchResults = await searchVernacularContent(searchQueries)
     
-    // 3. Analyze content with OpenAI
+    // 3. Analyze content with mock implementation
     const analysisResults = await analyzeConsumerContent(searchResults, project)
     
     // 4. Generate structured insights
@@ -237,35 +233,51 @@ Provide your analysis in JSON format with the following structure:
 `
 
   try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4",
-      messages: [
+    // Mock implementation: return a dummy analysis
+    return {
+      overall_sentiment: 0.5, // Neutral
+      price_sensitivity: 70, // Moderate sensitivity
+      regional_insights: [
         {
-          role: "system",
-          content: "You are an expert consumer insights analyst for Indian markets. Provide accurate, data-driven analysis."
+          region: "Mumbai",
+          sentiment: 0.6, // Positive
+          key_findings: ["Consumers are optimistic about job prospects", "Price increases are a concern"],
+          price_indicators: ["FMCG prices up 5%", "Transport costs up 10%"]
         },
         {
-          role: "user",
-          content: analysisPrompt
+          region: "Bangalore",
+          sentiment: 0.4, // Negative
+          key_findings: ["Consumers are cautious about spending", "Price increases are a major concern"],
+          price_indicators: ["FMCG prices up 10%", "Transport costs up 20%"]
         }
       ],
-      temperature: 0.3,
-      max_tokens: 2000
-    })
-
-    const analysisText = response.choices[0]?.message?.content
-    if (!analysisText) {
-      throw new Error('No analysis received from OpenAI')
-    }
-
-    try {
-      return JSON.parse(analysisText)
-    } catch (_parseError) {
-      console.error('Failed to parse OpenAI response:', analysisText)
-      throw new Error('Failed to parse analysis results')
+      language_insights: [
+        {
+          language: "HINDI",
+          cultural_context: "Consumers in rural areas are more price-sensitive",
+          sentiment_patterns: "Negative sentiment towards price increases"
+        },
+        {
+          language: "TAMIL",
+          cultural_context: "Consumers in urban areas are more price-insensitive",
+          sentiment_patterns: "Neutral sentiment towards price increases"
+        }
+      ],
+      trending_topics: [
+        {
+          topic: "Online Shopping",
+          mentions: 150,
+          sentiment: 0.7
+        },
+        {
+          topic: "FMCG Prices",
+          mentions: 100,
+          sentiment: 0.6
+        }
+      ]
     }
   } catch (error) {
-    console.error('OpenAI analysis failed:', error)
+    console.error('Mock analysis failed:', error)
     throw error
   }
 }
@@ -347,23 +359,49 @@ Cite sources using [n] format where n is the source number.
 `
 
   try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4",
-      messages: [
-        {
-          role: "system", 
-          content: "You are a professional market research analyst. Generate clear, actionable reports."
-        },
-        {
-          role: "user",
-          content: summaryPrompt
-        }
-      ],
-      temperature: 0.3,
-      max_tokens: 1500
-    })
+    // Mock implementation: return a dummy summary
+    return `
+# Consumer Insights Report for ${_searchResults[0]?.region || 'Unknown Region'}
 
-    return response.choices[0]?.message?.content || 'Report summary generation failed.'
+## Executive Summary
+Overall Sentiment: ${reportData.summary.overallSentiment}
+Price Sensitivity: ${reportData.summary.avgPriceSensitivity}%
+Total Sources: ${reportData.summary.totalSources}
+
+## Key Findings by Region
+- **${_searchResults[0]?.region || 'Unknown Region'}**:
+  - Sentiment: ${reportData.regionalInsights[0]?.sentiment || 0}
+  - Price Sensitivity: ${reportData.regionalInsights[0]?.pricesensitivity || 0}%
+  - Top Keywords: ${reportData.regionalInsights[0]?.topKeywords?.join(', ')}
+
+- **${_searchResults[1]?.region || 'Unknown Region'}**:
+  - Sentiment: ${reportData.regionalInsights[1]?.sentiment || 0}
+  - Price Sensitivity: ${reportData.regionalInsights[1]?.pricesensitivity || 0}%
+  - Top Keywords: ${reportData.regionalInsights[1]?.topKeywords?.join(', ')}
+
+## Language-specific Insights
+- **HINDI**:
+  - Cultural Context: ${reportData.languageInsights[0]?.culturalContext || 'N/A'}
+  - Price Terms: ${reportData.languageInsights[0]?.priceTerms?.join(', ') || 'N/A'}
+
+- **TAMIL**:
+  - Cultural Context: ${reportData.languageInsights[1]?.culturalContext || 'N/A'}
+  - Price Terms: ${reportData.languageInsights[1]?.priceTerms?.join(', ') || 'N/A'}
+
+## Price Sensitivity Analysis
+- Overall Price Sensitivity: ${reportData.summary.avgPriceSensitivity}%
+- Regional Variation: ${reportData.regionalInsights.map(ri => `${ri.region}: ${ri.pricesensitivity}%`).join(', ')}
+
+## Trending Topics
+- **${reportData.trendingTopics[0]?.topic || 'N/A'}**: Mentions: ${reportData.trendingTopics[0]?.mentions || 0}, Sentiment: ${reportData.trendingTopics[0]?.sentiment || 0}
+- **${reportData.trendingTopics[1]?.topic || 'N/A'}**: Mentions: ${reportData.trendingTopics[1]?.mentions || 0}, Sentiment: ${reportData.trendingTopics[1]?.sentiment || 0}
+
+## Recommendations
+1. Monitor price trends across regions.
+2. Focus on rural markets for FMCG products.
+3. Consider language-specific marketing strategies.
+4. Keep an eye on online shopping trends.
+`
   } catch (error) {
     console.error('Summary generation failed:', error)
     return 'Report summary generation failed. Please try again.'

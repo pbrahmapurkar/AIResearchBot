@@ -1,5 +1,5 @@
 // src/lib/llm/index.ts
-export type Provider = 'auto' | 'openai' | 'gemini' | 'cohere' | 'mistral'
+export type Provider = 'auto' | 'gemini' | 'cohere' | 'mistral'
 export type Step = { 
   index: number
   title: string
@@ -56,7 +56,8 @@ export async function planMissionJSON(mission: string): Promise<Plan> {
   const chosen = provider === 'auto' ? autoSelectProvider(mission) : provider
   
   try {
-    const raw = await runLLM({ provider: chosen, system: SYS_SCHEMA, user: mission })
+    const response = await callLLM({ provider: chosen, system: SYS_SCHEMA, user: mission })
+    const raw = response.content
 
     // robust JSON extraction
     const start = raw.indexOf('{')
@@ -64,11 +65,12 @@ export async function planMissionJSON(mission: string): Promise<Plan> {
     
     if (start === -1 || end === -1) {
       // one retry with stricter instruction
-      const retry = await runLLM({
+      const retryResponse = await callLLM({
         provider: chosen,
         system: SYS_SCHEMA + '\nReturn ONLY JSON. No markdown, no commentary.',
         user: mission
       })
+      const retry = retryResponse.content
       const s2 = retry.indexOf('{')
       const e2 = retry.lastIndexOf('}')
       if (s2 === -1 || e2 === -1) throw new Error('Planner did not return JSON')
@@ -81,39 +83,101 @@ export async function planMissionJSON(mission: string): Promise<Plan> {
   }
 }
 
-// Import and export OpenAI client
-import { OpenAI } from 'openai'
+export interface LLMOptions {
+  system?: string
+  user: string
+  provider?: Provider
+  temperature?: number
+  maxTokens?: number
+}
 
-export { OpenAI }
-export const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+export interface LLMResponse {
+  content: string
+  provider: Provider
+  usage?: {
+    promptTokens: number
+    completionTokens: number
+    totalTokens: number
+  }
+}
 
-export async function runLLM(opts: { provider: Provider, system?: string, user: string }): Promise<string> {
-  const p = opts.provider
+// Mock implementations for providers
+async function callGemini(opts: LLMOptions): Promise<LLMResponse> {
+  // Mock implementation
+  return {
+    content: `Mock Gemini response: ${opts.user.substring(0, 100)}...`,
+    provider: 'gemini',
+    usage: { promptTokens: 50, completionTokens: 100, totalTokens: 150 }
+  }
+}
+
+async function callCohere(opts: LLMOptions): Promise<LLMResponse> {
+  // Mock implementation
+  return {
+    content: `Mock Cohere response: ${opts.user.substring(0, 100)}...`,
+    provider: 'cohere',
+    usage: { promptTokens: 50, completionTokens: 100, totalTokens: 150 }
+  }
+}
+
+async function callMistral(opts: LLMOptions): Promise<LLMResponse> {
+  // Mock implementation
+  return {
+    content: `Mock Mistral response: ${opts.user.substring(0, 100)}...`,
+    provider: 'mistral',
+    usage: { promptTokens: 50, completionTokens: 100, totalTokens: 150 }
+  }
+}
+
+export async function callLLM(opts: LLMOptions): Promise<LLMResponse> {
+  const provider = opts.provider || 'auto'
   
-  if (p === 'openai') return (await import('./providers/openai')).callOpenAI(opts)
-  if (p === 'gemini') return (await import('./providers/gemini')).callGemini(opts)
-  if (p === 'cohere') return (await import('./providers/cohere')).callCohere(opts)
-  if (p === 'mistral') return (await import('./providers/huggingface')).callHF(opts)
-  
-  // auto fallback chain if somehow hit here
-  const fallbackOrder = ['gemini', 'openai', 'cohere', 'mistral'] as const
-  
-  for (const provider of fallbackOrder) {
+  if (provider === 'auto') {
+    // Try providers in order of preference
     try {
-      console.log(`Trying fallback provider: ${provider}`)
-      if (provider === 'gemini') return await (await import('./providers/gemini')).callGemini(opts)
-      if (provider === 'openai') return await (await import('./providers/openai')).callOpenAI(opts)
-      if (provider === 'cohere') return await (await import('./providers/cohere')).callCohere(opts)
-      if (provider === 'mistral') return await (await import('./providers/huggingface')).callHF(opts)
-    } catch (error) {
-      console.warn(`Fallback provider ${provider} failed:`, error)
-      continue
+      return await callGemini(opts)
+    } catch {
+      try {
+        return await callCohere(opts)
+      } catch {
+        return await callMistral(opts)
+      }
     }
   }
   
-  throw new Error('All LLM providers failed')
+  switch (provider) {
+    case 'gemini':
+      return await callGemini(opts)
+    case 'cohere':
+      return await callCohere(opts)
+    case 'mistral':
+      return await callMistral(opts)
+    default:
+      throw new Error(`Unknown provider: ${provider}`)
+  }
+}
+
+// Auto-select best available provider
+export function getBestProvider(): Provider {
+  // Check environment variables for available providers
+  if (process.env.GEMINI_API_KEY) return 'gemini'
+  if (process.env.COHERE_API_KEY) return 'cohere'
+  if (process.env.MISTRAL_API_KEY) return 'mistral'
+  
+  // Default to gemini if no keys are available
+  return 'gemini'
+}
+
+// Fallback provider selection
+export function getFallbackProvider(): Provider {
+  const providers: Provider[] = ['gemini', 'cohere', 'mistral']
+  
+  for (const provider of providers) {
+    const envKey = `${provider.toUpperCase()}_API_KEY`
+    if (process.env[envKey]) return provider
+  }
+  
+  return 'gemini' // Default fallback
 }
 
 /** Simple, practical router */
@@ -130,6 +194,6 @@ export function autoSelectProvider(mission: string): Exclude<Provider, 'auto'> {
   if (/\bstrategy|roadmap|enterprise|requirements|trade[- ]?offs?\b/.test(lower)) return 'cohere'
   // - Cost sensitive / simple planning → Mistral via HF
   if (/\bquick|cheap|lightweight|draft\b/.test(lower)) return 'mistral'
-  // - Default: OpenAI mini (if key present), else Gemini
-  return process.env.OPENAI_API_KEY ? 'openai' : 'gemini'
+  // - Default: Gemini (reliable, free tier available)
+  return 'gemini'
 }
