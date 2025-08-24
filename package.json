@@ -11,7 +11,11 @@
     "types:generate:local": "PROJECT_ID=rlioqsbxlfboczfrsmrr bash scripts/generate-types.sh",
     "db:reset": "supabase db reset",
     "db:push": "supabase db push",
-    "db:migrate": "supabase db push"
+    "db:migrate": "supabase db push",
+    "postinstall": "prisma generate",
+    "prebuild": "prisma generate",
+    "db:generate": "prisma generate",
+    "db:push:vercel": "prisma db push --accept-data-loss"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
