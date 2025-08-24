@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma'
 import { generateConsumerInsightsReport } from '@/lib/ai/report-generator'
 import { z } from 'zod'
 
+export const runtime = 'nodejs'
+
 type RouteParams = {
   params: Promise<{ id: string }>
 }
@@ -86,13 +88,32 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       }
     })
 
+    // Helper function to safely parse JSON fields
+    const parseLanguages = (languagesStr: string | null): ("HINDI" | "TAMIL" | "TELUGU" | "MARATHI" | "BENGALI" | "GUJARATI" | "KANNADA" | "MALAYALAM" | "PUNJABI" | "ODIA")[] => {
+      if (!languagesStr) return ["HINDI"]
+      try {
+        return JSON.parse(languagesStr) as ("HINDI" | "TAMIL" | "TELUGU" | "MARATHI" | "BENGALI" | "GUJARATI" | "KANNADA" | "MALAYALAM" | "PUNJABI" | "ODIA")[]
+      } catch {
+        return ["HINDI"]
+      }
+    }
+
+    const parseRegions = (regionsStr: string | null): string[] => {
+      if (!regionsStr) return ["India"]
+      try {
+        return JSON.parse(regionsStr) as string[]
+      } catch {
+        return ["India"]
+      }
+    }
+
     // Start background generation
     const projectForReport = {
       id: project.id,
       name: project.name,
       industry: project.industry as "FMCG" | "FINTECH" | "ECOMMERCE" | "HEALTHCARE" | "EDUCATION" | "AUTOMOTIVE" | "RETAIL" | "TRAVEL" | "REAL_ESTATE" | "OTHER",
-      languages: JSON.parse(project.languages) as ("HINDI" | "TAMIL" | "TELUGU" | "MARATHI" | "BENGALI" | "GUJARATI" | "KANNADA" | "MALAYALAM" | "PUNJABI" | "ODIA")[],
-      regions: JSON.parse(project.regions) as string[]
+      languages: parseLanguages(project.languages),
+      regions: parseRegions(project.regions)
     }
     
     generateConsumerInsightsReport(projectForReport, report.id).catch(error => {

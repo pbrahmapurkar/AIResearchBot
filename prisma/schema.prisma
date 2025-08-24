@@ -1,26 +1,30 @@
+// prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL") // for Prisma migrations/generate
 }
 
-// Example models - customize based on your needs
+// ---------- MODELS ----------
+// Note: You previously mapped to SQLite, keeping the same @@map mappings
+// so your SQL table names (plural) remain identical in Postgres.
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
   name      String?
-  orgId     String?  @map("org_id")  // Added for organization relation
+  orgId     String?  @map("org_id")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  // Relations
   organization Organization? @relation(fields: [orgId], references: [id])
-  projects Project[]
-  reports  Report[]
-  usage    Usage[]
+  projects     Project[]
+  reports      Report[]
+  usage        Usage[]
 
   @@map("users")
 }
@@ -38,39 +42,38 @@ model Post {
 }
 
 model Lead {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  utm       String?
+  id            String   @id @default(cuid())
+  email         String   @unique
+  utm           String?
   captureSource String?
-  ipAddress String?
-  userAgent String?
-  referrer  String?
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  ipAddress     String?
+  userAgent     String?
+  referrer      String?
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
   @@map("leads")
 }
 
 model Project {
-  id          String   @id @default(cuid())
-  title       String
-  name        String   // Made required, will be set to title if not provided
-  description String?
-  status      String   @default("active")
-  industry    String   // Made required, must be one of the Industry enum values
-  languages   String   // Made required, JSON string of Language enum values
-  regions     String   // Made required, JSON string of region strings
-  alertsEnabled Boolean @default(false)
-  alertThresholds String? // JSON string for alert thresholds
-  userId      String   @map("user_id")
-  orgId       String?  @map("org_id")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id             String   @id @default(cuid())
+  title          String
+  name           String
+  description    String?
+  status         String   @default("active")
+  industry       String
+  languages      String   // JSON string for PostgreSQL compatibility
+  regions        String   // JSON string for PostgreSQL compatibility
+  alertsEnabled  Boolean  @default(false)
+  alertThresholds String? // JSON string for PostgreSQL compatibility
+  userId         String   @map("user_id")
+  orgId          String?  @map("org_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
 
-  // Relations
-  organization Organization? @relation(fields: [orgId], references: [id])
-  reports     Report[]
-  user        User         @relation(fields: [userId], references: [id])
+  organization   Organization? @relation(fields: [orgId], references: [id])
+  reports        Report[]
+  user           User          @relation(fields: [userId], references: [id])
 
   @@map("projects")
 }
@@ -81,78 +84,73 @@ model Organization {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  // Relations
   users            User[]
   projects         Project[]
   planSubscription PlanSubscription?
-  usage           Usage[]
+  usage            Usage[]
 
   @@map("organizations")
 }
 
 model PlanSubscription {
-  id             String   @id @default(cuid())
-  plan           String   @default("FREE")
-  monthlyQuota   Int      @default(10)
-  usedThisMonth  Int      @default(0)
-  resetDate      DateTime // Added for tracking when quota resets
-  orgId          String   @unique @map("org_id")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  id            String   @id @default(cuid())
+  plan          String   @default("FREE")
+  monthlyQuota  Int      @default(10)
+  usedThisMonth Int      @default(0)
+  resetDate     DateTime
+  orgId         String   @unique @map("org_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
-  // Relations
-  organization   Organization @relation(fields: [orgId], references: [id])
+  organization  Organization @relation(fields: [orgId], references: [id])
 
   @@map("plan_subscriptions")
 }
 
 model Report {
-  id         String   @id @default(cuid())
-  title      String
-  summaryMd  String   @default("")
-  jsonData   String   @default("{}")  // Changed from Json to String for SQLite
-  period     String
-  status     String   @default("PENDING")
-  projectId  String   @map("project_id")
-  userId     String   @map("user_id")
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
+  id        String   @id @default(cuid())
+  title     String
+  summaryMd String   @default("")
+  jsonData  String   @default("{}")  // JSON string for PostgreSQL compatibility
+  period    String
+  status    String   @default("PENDING")
+  projectId String   @map("project_id")
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  // Relations
-  project    Project  @relation(fields: [projectId], references: [id])
-  user       User     @relation(fields: [userId], references: [id])
-  sources    Source[] // Added for source citations
+  project   Project  @relation(fields: [projectId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+  sources   Source[]
 
   @@map("reports")
 }
 
 model Source {
-  id         String   @id @default(cuid())
-  title      String
-  url        String
-  content    String
-  snippet    String
-  language   String?
-  region     String?
-  reportId   String   @map("report_id")
-  createdAt  DateTime @default(now()) @map("created_at")
+  id        String   @id @default(cuid())
+  title     String
+  url       String
+  content   String
+  snippet   String
+  language  String?
+  region    String?
+  reportId  String   @map("report_id")
+  createdAt DateTime @default(now()) @map("created_at")
 
-  // Relations
-  report     Report   @relation(fields: [reportId], references: [id])
+  report    Report   @relation(fields: [reportId], references: [id])
 
   @@map("sources")
 }
 
 model Usage {
-  id         String   @id @default(cuid())
-  userId     String   @map("user_id")
-  orgId      String   @map("org_id")
-  kind       String
-  costUnits  Int      @default(1)
-  metadata   String   @default("{}")
-  createdAt  DateTime @default(now()) @map("created_at")
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  orgId     String   @map("org_id")
+  kind      String
+  costUnits Int      @default(1)
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
 
-  // Relations
   user         User         @relation(fields: [userId], references: [id])
   organization Organization @relation(fields: [orgId], references: [id])
 

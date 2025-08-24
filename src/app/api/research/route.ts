@@ -4,6 +4,8 @@ import { MissionOrchestrator, type ResearchMission } from '@/lib/research/missio
 import { z } from 'zod'
 import { checkRateLimit, getClientIP } from '@/lib/utils'
 
+export const runtime = 'nodejs'
+
 const ResearchRequestSchema = z.object({
   prompt: z.string().min(10, 'Prompt must be at least 10 characters'),
   languages: z.array(z.enum(['hi', 'ta', 'te', 'mr'])).optional(),

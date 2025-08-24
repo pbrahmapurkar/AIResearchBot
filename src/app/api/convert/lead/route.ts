@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 
+export const runtime = 'nodejs'
+
 const LeadSchema = z.object({
   email: z.string().email('Invalid email address'),
   utm: z.object({

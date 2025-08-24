@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
+export const runtime = 'nodejs'
+
 type RouteParams = {
   params: Promise<{ id: string }>
 }

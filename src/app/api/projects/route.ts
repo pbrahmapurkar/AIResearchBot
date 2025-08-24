@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma'
 import { CreateProjectSchema } from '@/types/mister-pb'
 import { z } from 'zod'
 
+export const runtime = 'nodejs'
+
 export async function GET() {
   try {
     const session = await getServerSession()

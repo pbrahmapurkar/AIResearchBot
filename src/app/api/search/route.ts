@@ -3,6 +3,8 @@ import { z } from 'zod'
 import { searchWeb } from '@/lib/tools/tavily'
 import { checkRateLimit, getClientIP } from '@/lib/utils'
 
+export const runtime = 'nodejs'
+
 const SearchRequestSchema = z.object({
   query: z.string().min(1, 'Query is required').max(500, 'Query too long'),
   maxResults: z.number().optional().default(5)
