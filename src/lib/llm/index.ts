@@ -1,5 +1,12 @@
 // src/lib/llm/index.ts
-export type Provider = 'auto' | 'openai' | 'gemini' | 'cohere' | 'mistral'
+export type Provider =
+  | 'auto'
+  | 'openai'
+  | 'gemini'
+  | 'cohere'
+  | 'mistral'
+  | 'groq'
+  | 'anthropic'
 export type Step = { 
   index: number
   title: string
@@ -87,34 +94,133 @@ import { OpenAI } from 'openai'
 export { OpenAI }
 
 // Only create OpenAI client if API key is available
-export const openai = process.env.OPENAI_API_KEY 
+export const openai = process.env.OPENAI_API_KEY
   ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   : null
 
-export async function runLLM(opts: { provider: Provider, system?: string, user: string }): Promise<string> {
-  const p = opts.provider
-  
-  if (p === 'openai') return (await import('./providers/openai')).callOpenAI(opts)
-  if (p === 'gemini') return (await import('./providers/gemini')).callGemini(opts)
-  if (p === 'cohere') return (await import('./providers/cohere')).callCohere(opts)
-  if (p === 'mistral') return (await import('./providers/huggingface')).callHF(opts)
-  
-  // auto fallback chain if somehow hit here
-  const fallbackOrder = ['gemini', 'openai', 'cohere', 'mistral'] as const
-  
-  for (const provider of fallbackOrder) {
+type HealthCache = { healthy: boolean; checked: number }
+const HEALTH_CACHE: Map<Exclude<Provider, 'auto'>, HealthCache> = new Map()
+
+async function isProviderHealthy(p: Exclude<Provider, 'auto'>): Promise<boolean> {
+  const cached = HEALTH_CACHE.get(p)
+  if (cached && Date.now() - cached.checked < 60_000) return cached.healthy
+
+  try {
+    if (p === 'groq') {
+      const key = process.env.GROQ_API_KEY
+      if (!key) throw new Error('missing key')
+      const res = await fetch('https://api.groq.com/openai/v1/models', {
+        headers: { Authorization: `Bearer ${key}` },
+      })
+      HEALTH_CACHE.set(p, { healthy: res.ok, checked: Date.now() })
+      return res.ok
+    }
+    if (p === 'anthropic') {
+      const key = process.env.ANTHROPIC_API_KEY
+      if (!key) throw new Error('missing key')
+      const res = await fetch('https://api.anthropic.com/v1/models', {
+        headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01' },
+      })
+      HEALTH_CACHE.set(p, { healthy: res.ok, checked: Date.now() })
+      return res.ok
+    }
+    if (p === 'openai') {
+      const key = process.env.OPENAI_API_KEY
+      if (!key) throw new Error('missing key')
+      const res = await fetch('https://api.openai.com/v1/models', {
+        headers: { Authorization: `Bearer ${key}` },
+      })
+      HEALTH_CACHE.set(p, { healthy: res.ok, checked: Date.now() })
+      return res.ok
+    }
+    if (p === 'gemini') {
+      const key = process.env.GEMINI_API_KEY
+      if (!key) throw new Error('missing key')
+      const res = await fetch('https://generativelanguage.googleapis.com/v1/models', {
+        headers: { 'x-goog-api-key': key },
+      })
+      HEALTH_CACHE.set(p, { healthy: res.ok, checked: Date.now() })
+      return res.ok
+    }
+    if (p === 'cohere') {
+      const key = process.env.COHERE_API_KEY
+      if (!key) throw new Error('missing key')
+      const res = await fetch('https://api.cohere.com/v1/models', {
+        headers: { Authorization: `Bearer ${key}` },
+      })
+      HEALTH_CACHE.set(p, { healthy: res.ok, checked: Date.now() })
+      return res.ok
+    }
+    if (p === 'mistral') {
+      const key = process.env.HF_API_KEY
+      if (!key) throw new Error('missing key')
+      const res = await fetch('https://api-inference.huggingface.co/status', {
+        headers: { Authorization: `Bearer ${key}` },
+      })
+      HEALTH_CACHE.set(p, { healthy: res.ok, checked: Date.now() })
+      return res.ok
+    }
+  } catch {
+    HEALTH_CACHE.set(p, { healthy: false, checked: Date.now() })
+    return false
+  }
+
+  HEALTH_CACHE.set(p, { healthy: false, checked: Date.now() })
+  return false
+}
+
+async function callProvider(
+  provider: Exclude<Provider, 'auto'>,
+  opts: { system?: string; user: string }
+): Promise<string> {
+  switch (provider) {
+    case 'openai':
+      return (await import('./providers/openai')).callOpenAI(opts)
+    case 'gemini':
+      return (await import('./providers/gemini')).callGemini(opts)
+    case 'cohere':
+      return (await import('./providers/cohere')).callCohere(opts)
+    case 'mistral':
+      return (await import('./providers/huggingface')).callHF(opts)
+    case 'groq':
+      return (await import('./providers/groq')).callGroq(opts)
+    case 'anthropic':
+      return (await import('./providers/anthropic')).callAnthropic(opts)
+  }
+}
+
+export async function runLLM(opts: {
+  provider: Provider
+  system?: string
+  user: string
+}): Promise<string> {
+  const allProviders: Exclude<Provider, 'auto'>[] = [
+    'groq',
+    'anthropic',
+    'openai',
+    'gemini',
+    'cohere',
+    'mistral',
+  ]
+
+  const order =
+    opts.provider === 'auto'
+      ? allProviders
+      : [opts.provider as Exclude<Provider, 'auto'>].concat(
+          allProviders.filter((p) => p !== opts.provider)
+        )
+
+  for (const provider of order) {
+    if (!(await isProviderHealthy(provider))) continue
     try {
-      console.log(`Trying fallback provider: ${provider}`)
-      if (provider === 'gemini') return await (await import('./providers/gemini')).callGemini(opts)
-      if (provider === 'openai') return await (await import('./providers/openai')).callOpenAI(opts)
-      if (provider === 'cohere') return await (await import('./providers/cohere')).callCohere(opts)
-      if (provider === 'mistral') return await (await import('./providers/huggingface')).callHF(opts)
+      return await callProvider(provider, opts)
     } catch (error) {
-      console.warn(`Fallback provider ${provider} failed:`, error)
+      console.warn(`Provider ${provider} failed:`, error)
+      HEALTH_CACHE.set(provider, { healthy: false, checked: Date.now() })
       continue
     }
   }
-  
+
   throw new Error('All LLM providers failed')
 }
 
