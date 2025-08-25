@@ -45,7 +45,7 @@ export default function Navbar() {
         {user ? (
           <AvatarMenu
             user={{
-              email: user.email,
+              email: user.email ?? null,
               name: user.user_metadata?.full_name,
               avatar_url: profile.avatar_url ?? undefined,
             }}

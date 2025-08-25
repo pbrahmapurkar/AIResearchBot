@@ -71,13 +71,13 @@ export async function POST(request: NextRequest) {
       const updatedLead = await prisma.lead.update({
         where: { email },
         data: {
-          utm: utm ? {
+          utm: utm ? JSON.stringify({
             source: utm.source,
             medium: utm.medium,
             campaign: utm.campaign,
             term: utm.term,
             content: utm.content,
-          } : undefined,
+          }) : undefined,
         }
       })
 

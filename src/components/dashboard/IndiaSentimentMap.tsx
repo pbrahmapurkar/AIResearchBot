@@ -55,9 +55,7 @@ export default function IndiaSentimentMap({ data, onRegionSelect, selected }: Pr
                         tabIndex={0}
                         aria-label={`Sentiment for ${regionName(region)}`}
                         onClick={() => onRegionSelect?.(region)}
-                        title={`${regionName(region)}\nScore: ${point.score}\nVolume: ${formatNumber(point.volume)}\nTerms: ${point.topTerms
-                          .slice(0, 3)
-                          .join(', ')}`}
+
                       />
                     </Marker>
                   )}
