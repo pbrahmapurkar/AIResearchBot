@@ -1,133 +1,269 @@
-// app/signin/page.tsx
-'use client'
+"use client"
 
-import { useState } from 'react'
-import { createSupabaseBrowserClient } from '@/lib/supabase/browser'
-import { useSearchParams } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { toast } from 'sonner'
+import { useState } from "react"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { toast } from "sonner"
+import { useRouter, useSearchParams } from "next/navigation"
+import { signIn } from "next-auth/react"
 
 export default function SignInPage() {
-  const supabase = createSupabaseBrowserClient()
-  const [email, setEmail] = useState('')
-  const [loading, setLoading] = useState(false)
+  const router = useRouter()
   const search = useSearchParams()
-  const next = search.get('redirect') || '/app'
-  const callback = `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=${encodeURIComponent(next)}`
+  const next = search.get("redirect") || "/app"
+  const [mode, setMode] = useState<"signin" | "signup">("signin")
+  const [username, setUsername] = useState("")
+  const [email, setEmail] = useState("")
+  const [identifier, setIdentifier] = useState("")
+  const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
+  const [remember, setRemember] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [loading, setLoading] = useState(false)
+  const [forgot, setForgot] = useState(false)
+  const [fpEmail, setFpEmail] = useState("")
 
-  async function signInWithEmail(e: React.FormEvent) {
+  const passwordType = showPassword ? "text" : "password"
+
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+  function resetErrors() {
+    setErrors({})
+  }
+
+  async function handleSignup(e: React.FormEvent) {
     e.preventDefault()
+    resetErrors()
+    const newErrors: Record<string, string> = {}
+
+    if (!username) newErrors.username = 'Username is required'
+    if (!email || !emailRegex.test(email)) newErrors.email = 'Invalid email'
+    if (!passwordRegex.test(password)) newErrors.password = 'Weak password'
+    if (password !== confirmPassword) newErrors.confirmPassword = 'Passwords do not match'
+
+    if (Object.keys(newErrors).length) {
+      setErrors(newErrors)
+      return
+    }
+
     setLoading(true)
-    
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: callback },
+    const res = await fetch('/api/auth/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, email, password, confirmPassword }),
     })
-    
+    const data = await res.json()
     setLoading(false)
-    
-    if (error) {
-      toast.error(error.message)
+    if (!res.ok) {
+      toast.error(data.error || 'Signup failed')
     } else {
-      toast.success('Magic link sent! Check your email.')
+      toast.success('Account created!')
+      // Auto sign in after signup
+      const login = await fetch('/api/auth/signin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier: email, password }),
+      })
+      if (login.ok) {
+        router.push(next)
+      }
     }
   }
 
-  async function signInWithGoogle() {
+  async function handleSignin(e: React.FormEvent) {
+    e.preventDefault()
+    resetErrors()
+    const newErrors: Record<string, string> = {}
+    if (!identifier) newErrors.identifier = 'Email or username required'
+    if (!password) newErrors.password = 'Password required'
+    if (Object.keys(newErrors).length) {
+      setErrors(newErrors)
+      return
+    }
     setLoading(true)
-    
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: callback,
-        queryParams: { access_type: 'offline', prompt: 'consent' },
-      },
+    const res = await fetch('/api/auth/signin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identifier, password, rememberMe: remember }),
     })
-    
+    const data = await res.json()
     setLoading(false)
-    
-    if (error) {
-      toast.error(error.message)
+    if (!res.ok) {
+      toast.error(data.error || 'Login failed')
+    } else {
+      toast.success('Logged in successfully')
+      router.push(next)
+    }
+  }
+
+  async function handleForgot(e: React.FormEvent) {
+    e.preventDefault()
+    if (!fpEmail) {
+      setErrors({ fpEmail: 'Email is required' })
+      return
+    }
+    setLoading(true)
+    const res = await fetch('/api/auth/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: fpEmail }),
+    })
+    const data = await res.json()
+    setLoading(false)
+    if (!res.ok) {
+      toast.error(data.error || 'Request failed')
+    } else {
+      toast.success(data.message)
+      setForgot(false)
     }
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-      <Card className="w-full max-w-md shadow-xl">
-        <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold text-gray-900">Welcome Back</CardTitle>
-          <CardDescription className="text-gray-600">
-            Sign in to access your consumer insights dashboard
-          </CardDescription>
-        </CardHeader>
-        
-        <CardContent className="space-y-6">
-          <form onSubmit={signInWithEmail} className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium text-gray-700">
-                Email Address
-              </label>
-              <Input
-                id="email"
-                type="email"
-                required
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full"
-              />
-            </div>
-            
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700"
-            >
-              {loading ? 'Sending Magic Link...' : 'Send Magic Link'}
-            </Button>
-          </form>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-gray-300" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="bg-white px-2 text-gray-500">Or continue with</span>
-            </div>
-          </div>
-
+    <main className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="flex flex-row justify-center gap-4">
           <Button
-            onClick={signInWithGoogle}
-            disabled={loading}
-            variant="outline"
-            className="w-full"
+            variant={mode === 'signin' ? 'default' : 'outline'}
+            onClick={() => { setMode('signin'); resetErrors(); }}
           >
-            <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
-              <path
-                fill="currentColor"
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-              />
-              <path
-                fill="currentColor"
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-              />
-              <path
-                fill="currentColor"
-                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-              />
-              <path
-                fill="currentColor"
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-              />
-            </svg>
-            Continue with Google
+            Sign In
           </Button>
-
-          <div className="text-center text-sm text-gray-600">
-            <p>No account? Contact your administrator to get access.</p>
-          </div>
+          <Button
+            variant={mode === 'signup' ? 'default' : 'outline'}
+            onClick={() => { setMode('signup'); resetErrors(); }}
+          >
+            Sign Up
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {forgot ? (
+            <form onSubmit={handleForgot} className="space-y-4">
+              <div>
+                <Input
+                  type="email"
+                  placeholder="Email"
+                  value={fpEmail}
+                  onChange={(e) => setFpEmail(e.target.value)}
+                />
+                {errors.fpEmail && <p className="text-sm text-red-500">{errors.fpEmail}</p>}
+              </div>
+              <Button type="submit" disabled={loading} className="w-full">
+                {loading ? 'Sending...' : 'Send Reset Link'}
+              </Button>
+              <Button variant="link" type="button" onClick={() => { setForgot(false); resetErrors(); }} className="w-full">
+                Back to Sign In
+              </Button>
+            </form>
+          ) : mode === 'signup' ? (
+            <form onSubmit={handleSignup} className="space-y-4">
+              <div>
+                <Input
+                  placeholder="Username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                />
+                {errors.username && <p className="text-sm text-red-500">{errors.username}</p>}
+              </div>
+              <div>
+                <Input
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+                {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
+              </div>
+              <div className="relative">
+                <Input
+                  type={passwordType}
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-2 top-2 text-sm">
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+                {password && !passwordRegex.test(password) && (
+                  <p className="text-sm text-red-500">Password must be 8+ chars, include upper, lower, number & special character</p>
+                )}
+                {errors.password && <p className="text-sm text-red-500">{errors.password}</p>}
+              </div>
+              <div className="relative">
+                <Input
+                  type={passwordType}
+                  placeholder="Confirm Password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+                {confirmPassword && confirmPassword !== password && (
+                  <p className="text-sm text-red-500">Passwords do not match</p>
+                )}
+                {errors.confirmPassword && <p className="text-sm text-red-500">{errors.confirmPassword}</p>}
+              </div>
+              <Button type="submit" disabled={loading} className="w-full">
+                {loading ? 'Creating...' : 'Create Account'}
+              </Button>
+            </form>
+          ) : (
+            <form onSubmit={handleSignin} className="space-y-4">
+              <div>
+                <Input
+                  placeholder="Email or Username"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                />
+                {errors.identifier && <p className="text-sm text-red-500">{errors.identifier}</p>}
+              </div>
+              <div className="relative">
+                <Input
+                  type={passwordType}
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-2 top-2 text-sm">
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+                {errors.password && <p className="text-sm text-red-500">{errors.password}</p>}
+              </div>
+              <div className="flex items-center justify-between">
+                <label className="flex items-center space-x-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={remember}
+                    onChange={(e) => setRemember(e.target.checked)}
+                    className="rounded"
+                  />
+                  <span>Remember me</span>
+                </label>
+                <button type="button" className="text-sm underline" onClick={() => { setForgot(true); resetErrors(); }}>
+                  Forgot password?
+                </button>
+              </div>
+              <Button type="submit" disabled={loading} className="w-full">
+                {loading ? 'Signing in...' : 'Sign In'}
+              </Button>
+              <div className="relative py-2">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-white px-2 text-muted-foreground">Or continue with</span>
+                </div>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => signIn('google', { callbackUrl: next })}
+              >
+                Google
+              </Button>
+            </form>
+          )}
         </CardContent>
       </Card>
     </main>
