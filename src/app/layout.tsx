@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import TopNav from "@/components/TopNav";
 import { createServerClient } from '@supabase/ssr';
 import type { CookieOptions } from '@supabase/ssr';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { SupabaseProvider } from '@/components/supabase-provider';
 
 const inter = Inter({ subsets: ["latin"] });
@@ -62,12 +62,15 @@ export default async function RootLayout({
   
   const { data: { session } } = await supabase.auth.getSession();
 
+  const pathname = (await headers()).get('next-url') || '';
+  const showTopNav = !pathname.startsWith('/dashboard');
+
   return (
     <html lang="en">
       <body className={`${inter.className} ${spaceGrotesk.variable}`}>
         {/* Provide session to client components */}
         <SupabaseProvider initialSession={session ?? null}>
-          <TopNav />
+          {showTopNav && <TopNav />}
           {children}
           <Toaster />
         </SupabaseProvider>
