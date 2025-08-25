@@ -136,3 +136,35 @@ export function cleanupExpiredRateLimits(): void {
 
 // Clean up expired entries every 5 minutes
 setInterval(cleanupExpiredRateLimits, 5 * 60 * 1000)
+
+/**
+ * Simple utility to rate limit arbitrary routes. Returns true if the request is
+ * allowed, false otherwise.
+ */
+const routeRateLimitStore = new Map<string, { count: number; resetTime: number }>()
+
+export function checkRouteRateLimit(
+  identifier: string,
+  limit: number,
+  windowMs: number
+): { allowed: boolean; retryAfter?: number } {
+  const now = Date.now()
+  const current = routeRateLimitStore.get(identifier)
+
+  if (!current || now > current.resetTime) {
+    routeRateLimitStore.set(identifier, {
+      count: 1,
+      resetTime: now + windowMs,
+    })
+    return { allowed: true }
+  }
+
+  if (current.count >= limit) {
+    const retryAfter = Math.ceil((current.resetTime - now) / 1000)
+    return { allowed: false, retryAfter }
+  }
+
+  current.count++
+  routeRateLimitStore.set(identifier, current)
+  return { allowed: true }
+}
