@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createServerClient } from '@supabase/ssr'
 import type { CookieOptions } from '@supabase/ssr'
+import { getEnv } from '@/env'
 
 export async function GET(request: Request) {
   const url = new URL(request.url)
@@ -35,6 +36,7 @@ export async function GET(request: Request) {
   }
 
   // Always redirect to app (or provided "next")
-  const redirectBase = process.env.NEXT_PUBLIC_APP_URL!
+  const { NEXT_PUBLIC_APP_URL } = getEnv()
+  const redirectBase = NEXT_PUBLIC_APP_URL
   return NextResponse.redirect(new URL(next, redirectBase))
 }

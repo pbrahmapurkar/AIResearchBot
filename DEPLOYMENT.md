@@ -34,6 +34,7 @@ Add the following environment variables in Vercel:
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 NEXT_PUBLIC_SITE_URL=https://your-domain.vercel.app
+NEXT_PUBLIC_APP_URL=https://your-domain.vercel.app
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 ```
 
@@ -123,6 +124,7 @@ FOR UPDATE USING (
 - Verify Supabase environment variables
 - Check redirect URLs in Supabase
 - Ensure middleware is working correctly
+ - If successful login redirects to `http://localhost:3000`, ensure `NEXT_PUBLIC_SITE_URL` and `NEXT_PUBLIC_APP_URL` are set to your deployed domain in Vercel (no localhost), and Supabase Auth > URL Configuration uses your deployed domain for Site URL and Redirect URLs.
 
 ### Runtime Errors
 - Check Vercel function logs
