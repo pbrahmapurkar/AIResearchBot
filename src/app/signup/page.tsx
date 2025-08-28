@@ -6,8 +6,7 @@ import SigninRedirect from '@/components/auth/SigninRedirect'
 
 export const dynamic = 'force-dynamic'
 
-export default async function SignInPage() {
-  // Redirect to app if already signed in (double safety with middleware)
+export default async function SignUpPage() {
   const cookieStore = await cookies()
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -33,7 +32,6 @@ export default async function SignInPage() {
   return (
     <main className="flex min-h-screen items-center justify-center p-4 bg-slate-50">
       <div className="w-full max-w-md">
-        {/* Client-side redirect safety in case SSR session isn't visible yet */}
         <SigninRedirect />
         <AuthCard />
       </div>
