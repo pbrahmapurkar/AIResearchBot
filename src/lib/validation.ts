@@ -22,8 +22,12 @@ export const signUpSchema = z.object({
   password: passwordSchema,
 })
 
+export type SignUpSchema = z.infer<typeof signUpSchema>
+
 export const signInSchema = z.object({
   emailOrUsername: z.string().min(1),
   password: z.string().min(1),
   remember: z.boolean().optional().default(false),
 })
+
+export type SignInSchema = z.infer<typeof signInSchema>

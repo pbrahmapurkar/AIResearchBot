@@ -12,9 +12,8 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 
 export default function AuthPage() {
-  const router = useRouter()
   const search = useSearchParams()
-  const next = search.get('next') || '/dashboard'
+  const next = search.get('next') || '/app'
 
   return (
     <main className="flex min-h-screen items-center justify-center p-4">
@@ -43,7 +42,7 @@ export default function AuthPage() {
 
 function SignInForm({ redirect }: { redirect: string }) {
   const router = useRouter()
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<SignInSchema>({
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(signInSchema),
     defaultValues: { remember: true },
   })

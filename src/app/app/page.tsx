@@ -1,10 +1,9 @@
-import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { createServerClient } from '@supabase/ssr';
 import type { CookieOptions } from '@supabase/ssr';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrendingUp, BarChart3, FileText, Users, Globe, Target } from 'lucide-react';
+import { BarChart3, FileText, Users, Globe, Target, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic'
