@@ -20,7 +20,10 @@ export default function AuthCard() {
   const searchParams = useSearchParams()
   const { toast } = useToast()
   
-  const callbackUrl = searchParams?.get('callbackUrl') || '/insights'
+  // Determine post-auth destination from URL params
+  const dest = (searchParams?.get('redirect') || searchParams?.get('next') || '/app/projects')
+  // Always redirect OAuth/magic-link back to our server callback handler with destination
+  const callbackUrl = `/auth/callback?redirect=${encodeURIComponent(dest)}`
   const errorParam = searchParams?.get('error')
 
   // Handle email magic link signin
@@ -30,19 +33,19 @@ export default function AuthCard() {
     setError('')
 
     try {
-      const supabase = createSupabaseBrowserClient()
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: `${window.location.origin}${callbackUrl}`
-        }
+      // Use an API route so we can rate-limit magic link requests server-side
+      const res = await fetch('/api/auth/magic-link', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ email, redirectTo: callbackUrl })
       })
 
-      if (error) {
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
         setError('Failed to send sign-in link. Please try again.')
         toast({
           title: 'Error',
-          description: 'Failed to send sign-in link. Please check your email address.',
+          description: data?.error || 'Failed to send sign-in link. Please check your email address.',
           variant: 'destructive',
         })
       } else {

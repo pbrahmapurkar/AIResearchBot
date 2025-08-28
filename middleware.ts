@@ -42,8 +42,19 @@ export async function middleware(req: NextRequest) {
     }
   )
 
+  // Redirect authenticated users from home to projects dashboard
+  if (req.nextUrl.pathname === '/') {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      const url = req.nextUrl.clone()
+      url.pathname = '/app/projects'
+      return NextResponse.redirect(url)
+    }
+  }
+
   // Check authentication for protected routes
-  if (req.nextUrl.pathname.startsWith('/app')) {
+  const protectedPrefixes = ['/app', '/insights', '/research', '/settings']
+  if (protectedPrefixes.some((p) => req.nextUrl.pathname.startsWith(p))) {
     const { data: { session } } = await supabase.auth.getSession()
 
     if (!session) {
@@ -65,8 +76,28 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // Block access to sensitive files
-  if (req.nextUrl.pathname.match(/\.(env|config|json|md|txt)$/)) {
+  // Redirect signed-in users away from auth pages
+  if (req.nextUrl.pathname === '/signin' || req.nextUrl.pathname === '/signup') {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      const url = req.nextUrl.clone()
+      url.pathname = '/app/projects'
+      return NextResponse.redirect(url)
+    }
+  }
+
+  // Block access to sensitive files, but allow common public assets
+  const publicWhitelist = new Set([
+    '/manifest.json',
+    '/site.webmanifest',
+    '/robots.txt',
+    '/sitemap.xml',
+    '/favicon.ico',
+  ])
+  if (
+    req.nextUrl.pathname.match(/\.(env|config|json|md|txt)$/) &&
+    !publicWhitelist.has(req.nextUrl.pathname)
+  ) {
     return new NextResponse('Not Found', { status: 404 })
   }
 
