@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
+
 import { signInSchema } from '@/lib/validation'
 import { checkRouteRateLimit } from '@/lib/utils/rate-limit'
 
@@ -19,22 +19,11 @@ export async function POST(req: Request) {
 
   const { emailOrUsername, password, remember } = parsed.data
 
-  let email = emailOrUsername
+  const email = emailOrUsername
+  // For now, only support email-based authentication
+  // Username lookup would require a separate profiles table with username field
   if (!emailOrUsername.includes('@')) {
-    const admin = createAdminClient()
-    const { data: profile } = await admin
-      .from('profiles')
-      .select('id')
-      .eq('username', emailOrUsername)
-      .maybeSingle()
-    if (!profile?.id) {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 400 })
-    }
-    const { data: user } = await admin.auth.admin.getUserById(profile.id)
-    if (!user?.user?.email) {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 400 })
-    }
-    email = user.user.email
+    return NextResponse.json({ error: 'Please use your email address to sign in' }, { status: 400 })
   }
 
   const supabase = await createSupabaseServerClient()

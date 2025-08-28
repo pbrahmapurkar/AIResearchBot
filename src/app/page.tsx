@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { FileText, Calendar, User, TrendingUp, Eye, Download, Search, Globe, Target, BarChart3, Plus, Brain } from 'lucide-react'
+import { FileText, Calendar, Eye, Download, Search, Globe, Target, BarChart3, Plus, Brain } from 'lucide-react'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'

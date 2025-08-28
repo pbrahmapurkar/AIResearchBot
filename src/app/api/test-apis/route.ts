@@ -3,7 +3,7 @@ import { mockModelClient } from '@/lib/research/modelIntegration'
 
 export const runtime = 'nodejs'
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Test API configuration - all providers in mock mode
     const config = {

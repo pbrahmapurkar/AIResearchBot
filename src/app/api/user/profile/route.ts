@@ -11,17 +11,13 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', session.user.id)
-    .maybeSingle()
-
+  // For now, return basic user info from session
+  // Profile data would come from a separate profiles table
   return NextResponse.json({
     id: session.user.id,
     email: session.user.email,
-    username: profile?.username,
-    name: profile?.name,
-    avatar_url: profile?.avatar_url,
+    username: null, // Would come from profiles table
+    name: session.user.user_metadata?.full_name || null,
+    avatar_url: session.user.user_metadata?.avatar_url || null,
   })
 }

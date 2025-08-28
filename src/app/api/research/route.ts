@@ -83,19 +83,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Execute the mission with model orchestration
-    const completedMission = await missionOrchestrator.executeMission(mission)
+    const _completedMission = await missionOrchestrator.executeMission(mission)
 
     return NextResponse.json({
       success: true,
-      mission: completedMission,
-      modelAttribution: completedMission.report?.modelAttribution || {},
-      costs: calculateMissionCosts(completedMission),
+      mission: _completedMission,
+      modelAttribution: _completedMission.report?.modelAttribution || {},
+      costs: calculateMissionCosts(_completedMission),
       insights: {
-        totalSources: completedMission.sources.length,
+        totalSources: _completedMission.sources.length,
         languagesProcessed: mission.targetLanguages,
-        executionTime: completedMission.completedAt ? 
-          completedMission.completedAt - completedMission.createdAt : 0,
-        modelsUsed: completedMission.subtasks.map((t) => t.assignedModel)
+        executionTime: _completedMission.completedAt ? 
+          _completedMission.completedAt - _completedMission.createdAt : 0,
+        modelsUsed: _completedMission.subtasks.map((t: { assignedModel: string }) => t.assignedModel)
       }
     }, {
       headers: {

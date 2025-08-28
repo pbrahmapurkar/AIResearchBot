@@ -3,13 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": ">=18.17 <21"
+    "node": ">=18.18.0 <23"
   },
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "next lint --max-warnings=0",
+    "type-check": "tsc --noEmit",
     "types:generate": "bash scripts/generate-types.sh",
     "types:generate:local": "PROJECT_ID=rlioqsbxlfboczfrsmrr bash scripts/generate-types.sh",
     "db:reset": "supabase db reset",
@@ -22,7 +23,8 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "analyze": "ANALYZE=true next build"
   },
   "dependencies": {
     "@ai-sdk/groq": "^2.0.14",
